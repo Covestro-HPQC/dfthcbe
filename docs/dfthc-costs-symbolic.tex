@@ -1,0 +1,39 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-costs-symbolic.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-costs-symbolic.pdf dfthc-costs-symbolic.svg
+% The closed forms of the walk's Toffoli counts, dfthcbe against Low et al., per call.
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage{xcolor}
+\newcommand{\lgc}{\operatorname{lg}}
+\begin{document}
+\pagecolor{white}
+\small
+\setlength{\tabcolsep}{3.6pt}
+\begin{tabular}{@{}l l l l l@{}}
+  \toprule
+  Step & Operation & \texttt{dfthcbe} & Low \emph{et al.} & $\Delta$ \\
+  \midrule
+  \multicolumn{5}{@{}l}{\textit{\texttt{OuterPrepare}, once per walk}} \\
+  $1,27$     & $\mathrm{Unif}(x_o)$, twice & $2[n_x{>}0](4n_x+2s_u-5)$              & $8\lgc X_o$ \ (B24, B54) & $2[n_x{>}0](2s_u-5)-8\eta_x$ \\
+  $2$--$4$   & read, test, swap            & $M_1+K_1b_1-2$                         & $M_1+K_1b_1$ \ (B29)   & $-2$ \\
+  $24$--$26$ & undo swap and test, erase   & $b_1+\lceil X_o/K_{e1}\rceil+K_{e1}-4$   & $b_1+\lceil X_o/K_5\rceil+K_5$ \ (B53) & $-4$ \\
+  \multicolumn{5}{@{}l}{\textit{\texttt{InnerPrepare}, twice per walk}} \\
+  $5,22$     & $\mathrm{Unif}(b)$, twice   & $2[n_b{>}0](4n_b+2s_u-5)$              & $8\lgc(B{+}1)$ \ (B32, B52) & $2[n_b{>}0](2s_u-5)-8\eta_b$ \\
+  $6$--$8$   & read, test, swap            & $M_2+\beta_Ns(\hat B)-2+(K_2{-}1)(b_2+2)+b_2$ & $M_2+(K_2{-}1)(b_2+1)+b_2+1$ \ (B35, B37) & $(K_2{-}1)+\beta_Ns(\hat B)-3$ \\
+  $9$        & signs, \texttt{InnerSigns}  & $0$                                    & $0$ \ (B19)            & $0$ \\
+  $19$--$21$ & undo swap and test, erase   & $b_2+\lceil RC/K_{e2}\rceil+\beta(\lceil RC/K_{e2}\rceil,\lceil X_o/K_{e2}\rceil)+K_{e2}(B{+}1)-4$ & $b_2+1+\lceil RC(B{+}1)/K_4\rceil+K_4$ \ (B50) & $\beta(\lceil RC/K_{e2}\rceil,\lceil X_o/K_{e2}\rceil)-5$ \\
+  \multicolumn{5}{@{}l}{\textit{\texttt{InnerSelect}, twice per walk}} \\
+  $10$       & D1/Q1 angles                & $N+s(RC)-2$                            & $N$ \ (B41)            & $s(RC)-2$ \\
+  $11$       & SF angles                   & $RB+s(R)-1$                            & $RB$ \ (Tab.~III)      & $s(R)-1$ \\
+  $12,17$    & $\sigma$ multiplexer        & $4$                                    & $0$ \ (no row)         & $+4$ \\
+  $13,17$    & $U_{\mathrm{Swap}}$, twice  & $2N$                                   & $2N$ \ (Tab.~III)      & $0$ \\
+  $14,16$    & ladders $U$, $U^\dagger$    & $4(N{-}1)(b_{\mathrm{rot}}{-}1)$       & $4b_{\mathrm{rot}}(N{-}1)$ \ (Tab.~III) & $-4(N{-}1)$ \\
+  $15$       & \texttt{Maj}                & $5$                                    & $7$ \ (Fig.~4)         & $-2$ \\
+  $18$       & erase, $(b,r)$ fixup        & $R+B-3$                                & $R+B$ \ (B47)          & $-3$ \\
+  $18$       & erase, $x_o$ fixup          & $N+s(RC)-2$                            & $N$ \ (B50)            & $s(RC)-2$ \\
+  \multicolumn{5}{@{}l}{\textit{Reflections, once each per walk}} \\
+  $23$       & \texttt{REF\_T2}            & $b_2$                                  & $b_2+1$ \ (B11)        & $-1$ \\
+  $28$       & \texttt{REF\_aB}            & $b_1+b_2+1$                            & $b_1+b_2+2$ \ (B55)    & $-1$ \\
+  \bottomrule
+\end{tabular}
+\end{document}

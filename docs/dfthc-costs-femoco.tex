@@ -1,0 +1,44 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-costs-femoco.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-costs-femoco.pdf dfthc-costs-femoco.svg
+% The rows of dfthc-costs-symbolic at FeMoco-54, per call; dfthcbe's column is the built circuit.
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb,booktabs}
+\usepackage{xcolor}
+\begin{document}
+\pagecolor{white}
+\small
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{@{}l l r r r@{}}
+  \toprule
+  Step & Operation & \texttt{dfthcbe} & Low \emph{et al.} & $\Delta$ \\
+  \midrule
+  \multicolumn{5}{@{}l}{\textit{\texttt{OuterPrepare}, once per walk}} \\
+  $1,27$     & $\mathrm{Unif}(x_o)$, twice   & $74$   & $72$   & $+2$   \\
+  $2$--$4$   & read, test, swap              & $175$  & $177$  & $-2$   \\
+  $24$--$26$ & undo swap and test, erase     & $57$   & $61$   & $-4$   \\
+             & \emph{per call}               & $306$  & $310$  & $-4$   \\
+  \multicolumn{5}{@{}l}{\textit{\texttt{InnerPrepare}, twice per walk}} \\
+  $5,22$     & $\mathrm{Unif}(b)$, twice     & $42$   & $40$   & $+2$   \\
+  $6$--$8$   & read, test, swap              & $892$  & $860$  & $+32$  \\
+  $9$        & signs, \texttt{InnerSigns}    & $0$    & $0$    & $0$    \\
+  $19$--$21$ & undo swap and test, erase     & $199$  & $200$  & $-1$   \\
+             & \emph{per call}               & $1133$ & $1100$ & $+33$  \\
+  \multicolumn{5}{@{}l}{\textit{\texttt{InnerSelect}, twice per walk}} \\
+  $10$       & D1/Q1 angles                  & $56$   & $54$   & $+2$   \\
+  $11$       & SF angles                     & $271$  & $270$  & $+1$   \\
+  $12,17$    & $\sigma$ multiplexer          & $4$    & $0$    & $+4$   \\
+  $13,17$    & $U_{\mathrm{Swap}}$, twice    & $108$  & $108$  & $0$    \\
+  $14,16$    & ladders $U$, $U^\dagger$      & $2968$ & $3180$ & $-212$ \\
+  $15$       & \texttt{Maj}                  & $5$    & $7$    & $-2$   \\
+  $18$       & erase, $(b,r)$ fixup          & $34$   & $37$   & $-3$   \\
+  $18$       & erase, $x_o$ fixup            & $56$   & $54$   & $+2$   \\
+             & \emph{per call}               & $3502$ & $3710$ & $-208$ \\
+  \multicolumn{5}{@{}l}{\textit{Reflections, once each per walk}} \\
+  $23$       & \texttt{REF\_T2}              & $20$   & $21$   & $-1$   \\
+  $28$       & \texttt{REF\_aB}              & $45$   & $46$   & $-1$   \\
+  \midrule
+  \multicolumn{2}{@{}l}{block encoding, steps $1$--$27$} & $9596$ & $9951$ & $-355$ \\
+  \multicolumn{2}{@{}l}{walk operator $W$}     & $9641$ & $9997$ & $-356$ \\
+  \bottomrule
+\end{tabular}
+\end{document}

@@ -1,0 +1,38 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-rot-erase-sf.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-rot-erase-sf.pdf dfthc-rot-erase-sf.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  {%
+  \begin{quantikz}[row sep={0.5cm,between origins}, column sep=0.16cm,
+                   wire types={n,n,q,q,q,q,q,q,q,q,q,q,q,q,q}, font=\footnotesize,
+                   % The \push{\hspace{8pt}} in row 1 widen the cswap columns at a band
+                   % edge, whose markers are drawn wider than the column.
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{4}{5}{black!8}{15}{\textup{\shortstack{$X$-measure\\$0$}}}
+      \band{6}{13}{black!3}{15}{\textup{\shortstack{one-hot on $b$\\$(B{+}1)-2=6$}}}
+      \band{14}{19}{black!8}{15}{\textup{\shortstack{walk over $r$\\$R-2=0$}}}
+      \band{20}{27}{black!3}{15}{\textup{\shortstack{undo\\$0$}}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{\shortstack{Ag\\Ag}}} &  &  &  &  &  &  &  &  &  &  &  & \push{\hspace{8pt}} &  &  &  &  &  &  & \push{\hspace{8pt}} &  &  &  &  &  &  &  &  \\
+    \push{\vphantom{Ag}} &  &  &  &  &  &  &  &  &  &  &  &  &  & \push{F_0(0)} & \push{F_0(3)} &  & \push{F_1(3)} & \push{F_1(5)} &  &  &  &  &  &  &  &  &  \\
+    \lstick{$b[2]$} &  &  &  &  &  & \ctrl{4} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{4} &  & \rstick{$b[2]$} \\
+    \lstick{$b[1]$} &  &  &  &  &  &  & \ctrl{3} & \ctrl{7} &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{7} & \ctrl{3} &  &  & \rstick{$b[1]$} \\
+    \lstick{$b[0]$} &  &  &  &  &  &  &  &  & \ctrl{2} & \ctrl{4} & \ctrl{6} & \ctrl{8} &  &  &  &  &  &  & \ctrl{8} & \ctrl{6} & \ctrl{4} & \ctrl{2} &  &  &  &  & \rstick{$b[0]$} \\
+    \lstick{$r[0]$} &  &  &  &  &  &  &  &  &  &  &  &  & \gate{X} & \ctrl{1} & \ctrl{4} & \gate{X} & \ctrl{4} & \ctrl{6} &  &  &  &  &  &  &  &  & \rstick{$r[0]$} \\
+    \lstick{$|0\rangle_{y_0}$} &  &  &  &  & \gate{X} & \swap{4} & \swap{2} &  & \swap{1} &  &  &  &  & \control{} &  &  &  &  &  &  &  & \swap{1} &  & \swap{2} & \swap{4} & \gate{X} & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_1}$} &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_2}$} &  &  &  &  &  &  & \targX{} &  &  & \swap{1} &  &  &  &  &  &  &  &  &  &  & \swap{1} &  &  & \targX{} &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_3}$} &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  & \control{} &  & \control{} &  &  &  & \targX{} &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_4}$} &  &  &  &  &  & \targX{} &  & \swap{2} &  &  & \swap{1} &  &  &  &  &  &  &  &  & \swap{1} &  &  & \swap{2} &  & \targX{} &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_5}$} &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  & \control{} &  & \targX{} &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_6}$} &  &  &  &  &  &  &  & \targX{} &  &  &  & \swap{1} &  &  &  &  &  &  & \swap{1} &  &  &  & \targX{} &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_7}$} &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$(\vec\theta,[b\neq B],G)$} & \qwbundle{} &  & \gate{H} & \meter{} & \setwiretype{c} &  &  &  &  &  &  &  &  & \ctrl[vertical wire=c]{-8} & \ctrl[vertical wire=c]{-5} &  & \ctrl[vertical wire=c]{-5} & \ctrl[vertical wire=c]{-3} &  &  &  &  &  &  &  &  & \rstick{$\xi$}
+  \end{quantikz}}
+\end{document}

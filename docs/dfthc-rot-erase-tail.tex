@@ -1,0 +1,27 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-rot-erase-tail.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-rot-erase-tail.pdf dfthc-rot-erase-tail.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  {%
+  \begin{quantikz}[row sep={0.5cm,between origins}, column sep=0.2cm,
+                   wire types={n,n,q,q,q,q,q,c}, font=\footnotesize,
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{4}{6}{black!3}{8}{\textup{\shortstack{no sign\\$s(RC)=1$ leaf}}}
+      \band{7}{15}{black!8}{8}{\textup{\shortstack{tail rows: $Z^{F_{x_o}}$\\$N=3$ leaves}}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{\shortstack{Ag\\Ag\\Ag}}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  \\
+    \push{\vphantom{Ag}} &  &  &  & \push{[0,4)} &  &  &  & \push{x_o{=}4} &  & \push{x_o{=}5} &  &  & \push{x_o{=}6} &  &  &  \\
+    \lstick{$x_o[2]$} &  &  & \gate{X} & \gate[style={fill=black!4,dashed}]{1} & \gate{X} & \ctrl{3} &  &  &  &  &  & \ctrl{3} &  & \ctrl{3} &  &  \\
+    \lstick{$x_o[1]$} &  &  &  &  &  & \octrl{2} &  &  &  &  &  &  &  & \ctrl{2} &  &  \\
+    \lstick{$x_o[0]$} &  &  &  &  &  &  & \octrl{2} &  &  &  & \ctrl{2} &  &  &  &  &  \\
+    \lstick{$|0\rangle_{a_1}$} &  &  &  &  &  & \qand & \ctrl{1} &  & \ctrl{1} &  & \ctrl{1} & \targ{} & \gate{Z^{F_{6}}} & \qandd &  &  \\
+    \lstick{$|0\rangle_{a_2}$} &  &  &  &  &  &  & \qand & \gate{Z^{F_{4}}} & \targ{} & \gate{Z^{F_{5}}} & \qandd &  &  &  &  &  \\
+    \lstick{$\xi$} &  &  &  &  &  &  &  & \ctrl[vertical wire=c]{-1} &  & \ctrl[vertical wire=c]{-1} &  &  & \ctrl[vertical wire=c]{-2} &  &  & 
+  \end{quantikz}}
+\end{document}

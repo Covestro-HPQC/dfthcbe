@@ -1,0 +1,23 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-outer-prepare.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-outer-prepare.pdf dfthc-outer-prepare.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \begin{quantikz}[row sep={0.56cm,between origins}, column sep=0.3cm,
+                   wire types={n,q,q,q,q,q,q,q,q}, font=\footnotesize]
+    \push{\vphantom{Ag}} &  &  & \qstep{1} & \qstep{2} & \qstep{3} &  & \qstep{4} &  & \\
+    \lstick{$\mathrm{succ}_{x_o}$}       &  &  & \qunif{\mathrm{Unif}} &  &  &  &  &  & \\
+    \lstick{$x_o$}                       & \qwbundle{3} &  &  & \qIn\vqw{3} &  &  & \swap{3} &  & \rstick{$x_o$} \\
+    \lstick{$m_{x_o}$}                   & \qwbundle{3} &  & \gate{H} &  & \qcmp\vqw{1} &  &  &  & \\
+    \lstick{$\mathrm{less\_than}_{x_o}$} &  &  &  &  & \targ{} & \gate{X} & \ctrl{1} &  & \\
+    \lstick{$\mathrm{alt}$}              & \qwbundle{3} &  &  & \qdat{\mathrm{alt}}\vqw{1} &  &  & \targX{} &  & \\
+    \lstick{$\mathrm{keep}$}             & \qwbundle{3} &  &  & \qdat{\mathrm{keep}}\vqw{1} & \qcmp\vqw{-2} &  &  &  & \\
+    \lstick{$\mathrm{junk}$}             & \qwbundle{6} &  &  & \qdat{\mathrm{junk}} &  &  &  &  & \rstick{$\mathrm{junk}$} \\
+    \lstick{$\sigma_1$}                  &  &  & \gate{H} &  &  &  &  &  &
+  \end{quantikz}
+\end{document}

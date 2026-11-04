@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "dfthcbe"
+version = "1.0"
+description = "Qualtran Block Encoding of DFTHC Hamiltonian"
+readme = "README.md"
+requires-python = ">=3.10"
+
+dependencies = [
+    "attrs",
+    "numpy",
+    "sympy",
+    "mpmath",
+    "scipy",
+    "pytest",
+    "qualtran>=0.7",
+]
+
+[tool.setuptools]
+packages = ["dfthcbe"]
+
+[tool.pytest.ini_options]
+markers = ["intensive: exhaustive tensor contractions; opt in with `-m intensive`"]
+addopts = "-m 'not intensive'"
+# exact_erase's exact inverse warns that it is for simulation only; test_prepare.py checks it
+filterwarnings = ["ignore:QROAMCleanHetero:UserWarning"]
+
+

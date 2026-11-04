@@ -1,0 +1,34 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-inner-unprepare.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-inner-unprepare.pdf dfthc-inner-unprepare.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  {%
+  \begin{quantikz}[row sep={0.56cm,between origins}, column sep=0.3cm,
+                   wire types={n,q,q,q,q,q,q,q,q,q,q,q,q}, font=\footnotesize,
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{4}{4}{black!3}{13}{\textup{19}}
+      \band{5}{6}{black!8}{13}{\textup{20}}
+      \band{7}{10}{black!3}{13}{\textup{21}}
+      \band{11}{11}{black!8}{13}{\textup{22}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{Ag}} &  &  &  &  &  &  &  &  &  &  &  \\
+    \lstick{$x_o$} & \qwbundle{3} &  &  &  &  &  &  &  & \qfix\vqw{2} &  & \rstick{$x_o$} \\
+    \lstick{$\mathrm{succ}_b$} &  &  &  &  &  &  &  &  &  & \gate[2,style={fill=green!10}]{\mathrm{Unif}^\dagger} & \rstick{$|0\rangle$} \\
+    \lstick{$b$} & \qwbundle{3} &  & \swap{3} &  &  &  &  &  & \qfix &  & \rstick{$|0\rangle$} \\
+    \lstick{$m_b$} & \qwbundle{3} &  &  &  & \qcmp\vqw{1} &  &  &  &  & \gate{H} & \rstick{$|0\rangle$} \\
+    \lstick{$\mathrm{less\_than}_b$} &  &  & \ctrl{1} & \gate{X} & \targ{} &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$\mathrm{alt}$} & \qwbundle{3} &  & \targX{} &  &  & \gate{H} & \meter{} & \setwiretype{c} & \control{} &  & \rstick[6]{$\xi$} \\
+    \lstick{$\mathrm{keep}$} & \qwbundle{3} &  &  &  & \qcmp\vqw{-2} & \gate{H} & \meter{} & \setwiretype{c} & \control{} &  &  \\
+    \lstick{$\varsigma$} &  &  &  &  &  & \gate{H} & \meter{} & \setwiretype{c} & \control{} &  &  \\
+    \lstick{$\Delta\varsigma$} &  &  &  &  &  & \gate{H} & \meter{} & \setwiretype{c} & \control{} &  &  \\
+    \lstick{$r$} &  &  &  &  &  & \gate{H} & \meter{} & \setwiretype{c} & \control{} &  &  \\
+    \lstick{$\mathrm{junk}$} & \qwbundle{24} &  &  &  &  & \gate{H} & \meter{} & \setwiretype{c} & \ctrl[vertical wire=c]{-8} &  &  \\
+    \lstick{$\sigma_0$} &  &  &  &  &  &  &  &  &  & \gate{H} & \rstick{$|0\rangle$}
+  \end{quantikz}}
+\end{document}

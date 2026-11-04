@@ -1,0 +1,33 @@
+% Shorthands shared by the circuit figures.
+\newcommand{\qIn}{\gate[style={fill=black!8}]{\mathrm{In}}}         % QROM address
+\newcommand{\qInl}{\gate[style={fill=black!8}]{\mathrm{In}^{<}}}    % ... on x_o < RC
+\newcommand{\qIng}{\gate[style={fill=black!8}]{\mathrm{In}^{\geq}}} % ... on x_o >= RC
+\newcommand{\qfix}{\gate[style={fill=black!18}]{\mathrm{In}_{Z}}}   % address-controlled phase fixup
+\newcommand{\qdat}[1]{\gate[style={fill=cyan!14}]{#1}}              % QROM data out
+\newcommand{\qer}{\gate[style={fill=black!18}]{\mathcal{E}}}        % measurement erase
+\newcommand{\qcmp}{\gate[style={fill=yellow!35}]{<}}                % inequality test
+\newcommand{\qsys}[1]{\gate[style={fill=orange!20}]{#1}}            % acts on the system
+\newcommand{\qunif}[1]{\gate[2,style={fill=green!10}]{#1}}          % equal superposition
+\newcommand{\qand}{\gate[style={fill=black!10}]{\wedge}}            % AND into a fresh ancilla
+\newcommand{\qandd}{\gate[style={fill=black!18}]{\wedge^{\dagger}}} % ... freed by measurement
+\newcommand{\qmux}[1]{\gate[style={rounded corners=6pt}]{#1}}       % multiplexer on a register
+\newcommand{\qstep}[1]{\push{\text{\scriptsize #1}}}                % step number
+% Shaded band behind a bloq, labelled on top. Args: first column, last column, fill, last row,
+% label. quantikz only builds the -colN nodes this needs if the last matrix row has no \\.
+% TikZ pads the column nodes, so neighbouring ones overlap; each edge is put halfway between
+% them, which centres the band on its cells. Without a column on that side, 1.7pt out.
+\newcommand{\band}[5]{%
+  \ifnodedefined{\tikzcdmatrixname-col\the\numexpr#1-1\relax}%
+    {\coordinate (bandL) at ($(\tikzcdmatrixname-col\the\numexpr#1-1\relax.east)!0.5!(\tikzcdmatrixname-col#1.west)$);}%
+    {\coordinate (bandL) at ([xshift=-1.7pt]\tikzcdmatrixname-col#1.west);}%
+  \ifnodedefined{\tikzcdmatrixname-col\the\numexpr#2+1\relax}%
+    {\coordinate (bandR) at ($(\tikzcdmatrixname-col#2.east)!0.5!(\tikzcdmatrixname-col\the\numexpr#2+1\relax.west)$);}%
+    {\coordinate (bandR) at ([xshift=1.7pt]\tikzcdmatrixname-col#2.east);}%
+  \fill[#3] (bandL |- \tikzcdmatrixname-row1.north) rectangle (bandR |- \tikzcdmatrixname-row#4.south);
+  \node[font=\scriptsize\itshape,inner sep=1pt,align=center] at
+    ($(bandL |- \tikzcdmatrixname-row1)!0.5!(bandR |- \tikzcdmatrixname-row1)$) {#5};}
+% One step number spanning two columns, for a step drawn as two operations.
+\newcommand{\momentspan}[3]{%
+  \node[font=\scriptsize,inner sep=1pt] at
+    ($(\tikzcdmatrixname-col#1.west |- \tikzcdmatrixname-row2)!0.5!%
+      (\tikzcdmatrixname-col#2.east |- \tikzcdmatrixname-row2)$) {#3};}

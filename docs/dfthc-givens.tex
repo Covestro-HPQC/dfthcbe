@@ -1,0 +1,15 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-givens.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-givens.pdf dfthc-givens.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \begin{quantikz}[row sep={0.75cm,between origins}, column sep=0.25cm, font=\footnotesize]
+    \lstick{$q_k$}     &  & \gate{\sqrt{X}^{\dagger}} & \ctrl{1} & \gate{H} & \gate{R_z(\theta)} & \gate{H} & \ctrl{1} & \gate{\sqrt{X}} &  & \rstick{$q_k$} \\
+    \lstick{$q_{k+1}$} & \gate{S} & \gate{\sqrt{X}^{\dagger}} & \targ{} &  & \gate{R_z(\theta)} &  & \targ{} & \gate{\sqrt{X}} & \gate{S^{\dagger}} & \rstick{$q_{k+1}$}
+  \end{quantikz}
+\end{document}

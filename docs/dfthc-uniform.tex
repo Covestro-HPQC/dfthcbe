@@ -1,0 +1,35 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-uniform.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-uniform.pdf dfthc-uniform.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  {%
+  \begin{quantikz}[row sep={0.55cm,between origins}, column sep=0.22cm,
+                   wire types={n,q,q,q,q,q,q,q,q,q,q}, font=\footnotesize,
+                   % \band{first col}{last col}{fill}{last row}{label}; matrix col 1 =
+                   % wire labels, 2 = bundle slashes, 3 = lead-in, then the gates.
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{4}{4}{black!3}{10}{\textup{\shortstack{$H$\\$0$}}}
+      \band{5}{9}{black!8}{10}{\textup{\shortstack{phase $\tilde\theta$ on $x_o<7$\\$3+2+3$}}}
+      \band{10}{10}{black!3}{10}{\textup{\shortstack{$H$\\$0$}}}
+      \band{11}{17}{black!8}{10}{\textup{\shortstack{phase $\tilde\theta$ on $x_o=0$\\$1+1+2$}}}
+      \band{18}{18}{black!3}{10}{\textup{\shortstack{$H$\\$0$}}}
+      \band{19}{19}{black!8}{10}{\textup{\shortstack{flag\\$3$}}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{\shortstack{Ag\\Ag}}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+    \lstick{$x_o[2]$} &  &  & \gate{H} & \gate[3,style={fill=yellow!35}]{<7} &  &  &  & \gate[3,style={fill=yellow!35}]{<7} & \gate{H} & \octrl{1} &  &  &  &  &  & \octrl{1} & \gate{H} & \gate[3,style={fill=yellow!35}]{<7} & \rstick[3]{$x_o$} \\
+    \lstick{$x_o[1]$} &  &  & \gate{H} &  &  &  &  &  & \gate{H} & \octrl{4} &  &  &  &  &  & \octrl{4} & \gate{H} &  & \\
+    \lstick{$x_o[0]$} &  &  & \gate{H} &  &  &  &  &  & \gate{H} &  & \octrl{4} &  &  &  & \octrl{4} &  & \gate{H} &  & \\
+    \lstick{$|0\rangle_{\mathrm{succ}_{x_o}}$} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \targ{}\vqw{-1} & \rstick{$[x_o<7]$} \\
+    \lstick{$|0\rangle_c$} &  &  &  & \targ{}\vqw{-2} & \ctrl{3} &  & \ctrl{3} & \targ{}\vqw{-2} &  &  &  &  &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_j$} &  &  &  &  &  &  &  &  &  & \qand & \ctrl{1} &  &  &  & \ctrl{1} & \qandd &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_z$} &  &  &  &  &  &  &  &  &  &  & \qand & \ctrl{1} &  & \ctrl{1} & \qandd &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_t$} & \qwbundle{4} &  &  &  & \gate{\oplus2} & \gate[2]{\mathrm{Add}} & \gate{\oplus2} &  &  &  &  & \gate{\oplus2} & \gate[2]{\mathrm{Add}} & \gate{\oplus2} &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|\phi_4\rangle$} & \qwbundle{4} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \rstick{$|\phi_4\rangle$}
+  \end{quantikz}}
+\end{document}

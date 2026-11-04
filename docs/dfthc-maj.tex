@@ -1,0 +1,34 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-maj.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-maj.pdf dfthc-maj.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \begin{quantikz}[row sep={0.62cm,between origins}, column sep=0.4cm, font=\footnotesize,
+                   wire types={n,q,q,q,q,q,q,q,q,q}]
+    &                    &          &           & \qstep{(1)} & \qstep{(2)} & \qstep{(3)} & \qstep{(4)}
+    &           &          &           & \\
+    \lstick{$\mathrm{succ}_{x_o}$} & \ctrl{2} & \targ{}   & \ctrl{3} &          &          &          &
+    & \ctrl{3}  & \targ{}  & \ctrl{2}  & \\
+    \lstick{$\mathrm{succ}_b$}     &          &           & \ctrl{2} &          &          &          &
+    & \ctrl{2}  &          &           & \\
+    \lstick{$|0\rangle_a$}         & \qand    & \ctrl{-2} &          &          & \ctrl{6} & \ctrl{6} & \ctrl{5}
+    &           & \ctrl{-2} & \qandd   & \\
+    \lstick{$|0\rangle_s$}         &          &           & \qand    & \ctrl{5} &          &          &
+    & \qandd    &          &           & \\
+    \lstick{$G_0$}                 & \ctrl{-2} &          &          &          &          &          &
+    &           &          & \ctrl{-2} & \\
+    \lstick{$G_1$}                 &          &           &          &          &          &          & \control{}
+    &           &          &           & \\
+    \lstick{$b\neq B$}             &          &           &          & \control{} &        &          &
+    &           &          &           & \\
+    \lstick{$f=\sigma_0$}          &          &           &          &          &          & \control{} & \control{}
+    &           &          &           & \\
+    \lstick{$t$}                   &          &           &          & \ocontrol{} & \targ{} & \control{} &
+    &           &          &           &
+  \end{quantikz}
+\end{document}

@@ -1,0 +1,23 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-phase-add.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-phase-add.pdf dfthc-phase-add.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \begin{quantikz}[row sep={0.75cm,between origins}, column sep=0.3cm,
+                   wire types={n,q,q,q}, font=\footnotesize,
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{4}{5}{black!3}{4}{\textup{\shortstack{$X$, CNOTs\\$0$}}}
+      \band{6}{6}{black!8}{4}{\textup{\shortstack{$\mathrm{Add}$\\$b_{\mathrm{rot}}-1$}}}
+      \band{7}{8}{black!3}{4}{\textup{\shortstack{CNOTs, $X$\\$0$}}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{\shortstack{Ag\\Ag}}} &  &  &  &  &  &  &  & \\
+    \lstick{$q$} &  &  & \gate{X} & \ctrl{2} &  & \ctrl{2} & \gate{X} & \rstick{$q$} \\
+    \lstick{$x$} & \qwbundle{b_{\mathrm{rot}}} &  &  &  & \gate[2]{\mathrm{Add}} &  &  & \rstick{$x$} \\
+    \lstick{$y$} & \qwbundle{b_{\mathrm{rot}}} &  &  & \targ{} &  & \targ{} &  & \rstick{$y\pm x$}
+  \end{quantikz}
+\end{document}

@@ -1,0 +1,40 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-walk.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-walk.pdf dfthc-walk.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \begin{quantikz}[row sep={0.9cm,between origins}, column sep=0.3cm, font=\small,
+                   wire types={q,q,q,n}]
+    \lstick{$a$}
+      & \gate[style={fill=black!8}]{\mathrm{PREP}}
+        \gategroup[3,steps=5,style={dashed,rounded corners,inner xsep=3pt,inner ysep=8pt},
+                   background,label style={label position=above,yshift=2pt}]{$U$}
+      % PREP_b and SEL_b read x_o: PREP_b loads its (x_o, b) alias table, SEL_b the angles
+      & \qmux{x_o}\vqw{1} &  & \qmux{x_o}\vqw{1} & \qmux{x_o}\vqw{1} &  &
+        \qmux{x_o}\vqw{1}
+        \gategroup[3,steps=5,style={dashed,rounded corners,inner xsep=3pt,inner ysep=8pt},
+                   background,label style={label position=above,yshift=2pt}]{$U^\dagger$}
+      & \qmux{x_o}\vqw{1} &  & \qmux{x_o}\vqw{1} & \gate[style={fill=black!8}]{\mathrm{PREP}^\dagger} &
+      & \gate[2,style={fill=red!10}]{\mathrm{REF}_{a\cup B}} & \\
+    \lstick{$B$}
+      &  & \gate[style={fill=black!3}]{\mathrm{PREP}_b}
+      & \gate[style={fill=black!3}]{\mathrm{SGN}}
+      & \gate[2,style={fill=black!9}]{\mathrm{SEL}_b}
+      & \gate[style={fill=black!3}]{\mathrm{PREP}_b^\dagger}
+      & \gate[style={fill=red!10}]{\mathrm{REF}_{T_2}}
+      & \gate[style={fill=black!3}]{\mathrm{PREP}_b}
+      & \gate[2,style={fill=black!9}]{\mathrm{SEL}_b^\dagger}
+      & \gate[style={fill=black!3}]{\mathrm{SGN}}
+      & \gate[style={fill=black!3}]{\mathrm{PREP}_b^\dagger} &  &  &  & \\
+    \lstick{$\psi$}
+      &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+    \lstick{}
+      & \qstep{1--4} & \qstep{5--8} & \qstep{9} & \qstep{10--18} & \qstep{19--22} & \qstep{23}
+      & \qstep{22--19} & \qstep{18--10} & \qstep{9} & \qstep{8--5} & \qstep{24--27} &  & \qstep{28} &
+  \end{quantikz}
+\end{document}

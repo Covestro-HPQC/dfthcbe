@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: dfthcbe
+abstract: Qualtran Block Encoding of DFTHC Hamiltonian
+type: software
+authors:
+  - family-names: Koridon
+    given-names: Emiel
+    affiliation: Covestro
+  - family-names: Oumarou
+    given-names: Oumarou
+    affiliation: Covestro
+  - family-names: Rubin
+    given-names: Nicholas C.
+    affiliation: Google
+  - family-names: Gogolin
+    given-names: Christian
+    affiliation: Covestro
+version: "1.0"
+license: Apache-2.0
+repository-code: https://github.com/Covestro-HPQC/dfthcbe

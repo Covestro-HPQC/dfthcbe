@@ -1,0 +1,26 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-qroam-outer.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-qroam-outer.pdf dfthc-qroam-outer.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \begin{quantikz}[row sep={0.5cm,between origins}, column sep=0.24cm,
+                   wire types={n,n,q,q,q,q,q,q}, font=\footnotesize,
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{3}{14}{black!3}{8}{\textup{\shortstack{2a\\$2$}}}
+      \band{15}{15}{black!8}{8}{\textup{\shortstack{2b\\$6$}}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{\shortstack{Ag\\Ag}}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \\
+    \push{\vphantom{Ag}} &  &  &  & \push{x_o^{\mathrm{hi}}{=}0} &  & \push{x_o^{\mathrm{hi}}{=}1} &  &  &  & \push{x_o^{\mathrm{hi}}{=}2} &  & \push{x_o^{\mathrm{hi}}{=}3} &  &  & \\
+    \lstick{$x_o[2]$} &  & \gate{X} & \ctrl{1} &  & \ctrl{3} &  & \ctrl{1} & \gate{X} & \ctrl{1} &  & \ctrl{3} &  & \ctrl{1} &  & \rstick{$x_o[2]$} \\
+    \lstick{$x_o[1]$} &  &  & \octrl{2} &  &  &  & \ctrl{2} &  & \octrl{2} &  &  &  & \ctrl{2} &  & \rstick{$x_o[1]$} \\
+    \lstick{$x_o[0]$} &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{2} & \rstick{$x_o[0]$} \\
+    \lstick{$|0\rangle_a$} &  &  & \qand & \ctrl{2} & \targ{} & \ctrl{1} & \qandd &  & \qand & \ctrl{1} & \targ{} & \ctrl{1} & \qandd &  & \rstick{$|0\rangle_a$} \\
+    \lstick{$|0\rangle_{\mathrm{copy}\,0}$} & \qwbundle{6} &  &  &  &  & \qdat{\oplus(2,0)}\vqw{1} &  &  &  & \qdat{\oplus(0,6)}\vqw{1} &  & \qdat{\oplus(1,4)} &  & \swap{1} & \rstick{$A_{x_o}=(\mathrm{alt},\mathrm{keep})$} \\
+    \lstick{$|0\rangle_{\mathrm{copy}\,1}$} & \qwbundle{6} &  &  & \qdat{\oplus(2,7)} &  & \qdat{\oplus(0,6)} &  &  &  & \qdat{\oplus(0,6)} &  &  &  & \targX{} & \rstick{junk}
+  \end{quantikz}
+\end{document}

@@ -1,0 +1,27 @@
+{
+  "trial": 162,
+  "system": "fe4s4",
+  "study_dir": "../data/dfthc/cost_optuna/fe4s4_R1-35_B1-50_C1-45_xdf",
+  "max_pqrs_error": 0.1719,
+  "params": {
+    "R": 33,
+    "B": 11,
+    "C": 3,
+    "rho": 1.147499047102336e-05,
+    "mu": 0.0041214842971735
+  },
+  "metrics": {
+    "pqrs_error": 0.1618549505768635,
+    "total_cost": 142273910.0,
+    "C_BE": 7066.0,
+    "lambda_eff": 12.817753452349097,
+    "lambda_sos": 50.700988067410094,
+    "e_gap": 1.646983262027959,
+    "e_sos": -328.886640064028,
+    "e_upper": -327.239656802,
+    "n_queries": 20135
+  },
+  "paper_cost": 172337914.0,
+  "paper_cost_corrected_to_our_e_upper": false,
+  "cost_ratio_paper_over_ours": 1.211310731531874
+}

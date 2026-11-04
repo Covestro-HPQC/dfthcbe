@@ -1,0 +1,42 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-inner-alias-erase.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-inner-alias-erase.pdf dfthc-inner-alias-erase.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  {%
+  \begin{quantikz}[row sep={0.5cm,between origins}, column sep=0.16cm,
+                   wire types={n,n,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q,q}, font=\footnotesize,
+                   % The \push{\hspace{8pt}} in row 1 widen the cswap columns at a band
+                   % edge, whose markers are drawn wider than the column.
+                   execute at end picture={\begin{pgfonlayer}{background}
+      \band{4}{5}{black!8}{19}{\textup{\shortstack{$X$-measure\\$0$}}}
+      \band{6}{13}{black!3}{19}{\textup{\shortstack{one-hot on $b$\\$K_{e2}(B{+}1)-2=6$}}}
+      \band{14}{36}{black!8}{19}{\textup{\shortstack{walk over $x_o$: SF rows $[0,4)$, kept off the zero rows by the leaves $[4,6)$ and $\{6\}$\\$\lceil RC/K_{e2}\rceil+\beta-2=4+2-2=4$}}}
+      \band{37}{44}{black!3}{19}{\textup{\shortstack{undo\\$0$}}}
+    \end{pgfonlayer}}]
+    \push{\vphantom{\shortstack{Ag\\Ag}}} &  &  &  &  &  &  &  &  &  &  &  & \push{\hspace{8pt}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \push{\hspace{8pt}} &  &  &  &  &  &  &  &  \\
+    \push{\vphantom{Ag}} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \push{F_0[1]} & \push{F_0[5]} &  & \push{F_1[0]} & \push{F_1[4]} &  &  &  & \push{F_2[2]} & \push{F_2[3]} &  & \push{F_3[1]} &  &  &  &  & \push{[4,6)} &  & \push{\{6\}} &  &  &  &  &  &  &  &  &  &  \\
+    \lstick{$x_o[2]$} &  &  &  &  &  &  &  &  &  &  &  &  & \gate{X} & \ctrl{6} &  &  &  &  &  &  &  & \ctrl{6} &  &  &  &  &  &  & \ctrl{6} & \gate{X} & \ctrl{6} &  & \ctrl{6} &  & \ctrl{6} &  &  &  &  &  &  &  &  & \rstick{$x_o[2]$} \\
+    \lstick{$x_o[1]$} &  &  &  &  &  &  &  &  &  &  &  &  &  & \octrl{5} &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{5} &  & \octrl{5} &  &  &  & \ctrl{5} &  &  &  &  &  &  &  &  & \rstick{$x_o[1]$} \\
+    \lstick{$x_o[0]$} &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \octrl{5} &  &  &  &  &  & \ctrl{5} &  & \octrl{5} &  &  &  &  & \ctrl{5} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \rstick{$x_o[0]$} \\
+    \lstick{$b[2]$} &  &  &  &  &  & \ctrl{5} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{5} &  & \rstick{$b[2]$} \\
+    \lstick{$b[1]$} &  &  &  &  &  &  & \ctrl{4} & \ctrl{8} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{8} & \ctrl{4} &  &  & \rstick{$b[1]$} \\
+    \lstick{$b[0]$} &  &  &  &  &  &  &  &  & \ctrl{3} & \ctrl{5} & \ctrl{7} & \ctrl{9} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \ctrl{9} & \ctrl{7} & \ctrl{5} & \ctrl{3} &  &  &  &  & \rstick{$b[0]$} \\
+    \lstick{$|0\rangle_{a_1}$} &  &  &  &  &  &  &  &  &  &  &  &  &  & \qand & \ctrl{1} &  &  & \ctrl{1} &  &  & \ctrl{1} & \targ{} & \ctrl{1} &  &  & \ctrl{1} &  & \ctrl{1} & \qandd &  & \qand & \gate[style={fill=black!4,dashed}]{1} & \targ{} & \gate[style={fill=black!4,dashed}]{1} & \qandd &  &  &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{a_2}$} &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \qand & \ctrl{2} & \ctrl{6} & \targ{} & \ctrl{1} & \ctrl{5} & \qandd &  & \qand & \ctrl{3} & \ctrl{4} & \targ{} & \ctrl{2} & \qandd &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_0}$} &  &  &  &  & \gate{X} & \swap{4} & \swap{2} &  & \swap{1} &  &  &  &  &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \swap{1} &  & \swap{2} & \swap{4} & \gate{X} & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_1}$} &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_2}$} &  &  &  &  &  &  & \targX{} &  &  & \swap{1} &  &  &  &  &  &  &  &  &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  &  &  &  & \swap{1} &  &  & \targX{} &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_3}$} &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_4}$} &  &  &  &  &  & \targX{} &  & \swap{2} &  &  & \swap{1} &  &  &  &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \swap{1} &  &  & \swap{2} &  & \targX{} &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_5}$} &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  & \control{} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_6}$} &  &  &  &  &  &  &  & \targX{} &  &  &  & \swap{1} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \swap{1} &  &  &  & \targX{} &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$|0\rangle_{y_7}$} &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \targX{} &  &  &  &  &  &  &  & \rstick{$|0\rangle$} \\
+    \lstick{$(\mathrm{alt},\mathrm{keep},\varsigma,\Delta\varsigma,r,\mathrm{junk})$} & \qwbundle{} &  & \gate{H} & \meter{} & \setwiretype{c} &  &  &  &  &  &  &  &  &  &  & \ctrl[vertical wire=c]{-7} & \ctrl[vertical wire=c]{-3} &  & \ctrl[vertical wire=c]{-8} & \ctrl[vertical wire=c]{-4} &  &  &  & \ctrl[vertical wire=c]{-6} & \ctrl[vertical wire=c]{-5} &  & \ctrl[vertical wire=c]{-7} &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  &  & \rstick{$\xi$}
+  \end{quantikz}}
+\end{document}

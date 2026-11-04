@@ -1,0 +1,47 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-qrom-tail.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-qrom-tail.pdf dfthc-qrom-tail.svg
+\documentclass[border=8pt,varwidth=17cm]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\usepackage{forest}
+\input{circuit-macros}
+\begin{document}
+\pagecolor{white}
+  \forestset{
+    addr/.style={draw, rounded corners=2pt, inner sep=1.6pt, minimum height=3ex, font=\scriptsize},
+    split/.style={addr, fill=black!12},
+    free/.style={addr, fill=black!3, double},
+    pass/.style={addr, dotted},
+    dead/.style={addr, dashed, fill=black!4},
+    live/.style={addr, fill=cyan!14},
+    outside/.style={addr, draw=black!30, text=black!40, dotted},
+  }
+  \textbf{(a)}\par\smallskip
+  \begin{forest}
+    for tree={l sep=6pt, s sep=5pt, edge={black!55}}
+    [{$[0,8)$}, free
+      [{$[0,4)$}, dead]
+      [{$[4,8)$}, split
+        [{$[4,6)$}, split [{$4$}, live] [{$5$}, live]]
+        [{$[6,8)$}, pass [{$6$}, live] [{$7$}, outside]]]]
+  \end{forest}
+
+  \vspace{2ex}
+  \textbf{(b)}\par\smallskip
+  \resizebox{\linewidth}{!}{%
+  \begin{quantikz}[row sep={0.5cm,between origins}, column sep=0.2cm,
+                   wire types={n,q,q,q,q,q,q,q,q,q}, font=\footnotesize]
+    \push{\vphantom{Ag}} &  &  &  & \push{[0,4)} &  &  &  & \push{x_o{=}4} &  & \push{x_o{=}5} &  &  & \push{x_o{=}6} &  &  \\
+    \lstick{$x_o[2]$} &  &  & \gate{X} &  & \gate{X} & \ctrl{3} &  &  &  &  &  & \ctrl{3} &  & \ctrl{3} &  \\
+    \lstick{$x_o[1]$} &  &  &  &  &  & \octrl{2} &  &  &  &  &  &  &  & \ctrl{2} &  \\
+    \lstick{$x_o[0]$} &  &  &  &  &  &  & \octrl{2} &  &  &  & \ctrl{2} &  &  &  &  \\
+    \lstick{$|0\rangle_{a_1}$} &  &  &  &  &  & \qand & \ctrl{1} &  & \ctrl{1} &  & \ctrl{1} & \targ{} & \ctrl{2} & \qandd &  \\
+    \lstick{$|0\rangle_{a_2}$} &  &  &  &  &  &  & \qand & \ctrl{1} & \targ{} & \ctrl{1} & \qandd &  &  &  &  \\
+    \lstick{$\theta_{0}$} & \qwbundle{b_{\mathrm{rot}}} &  &  & \gate[4,style={fill=black!4,dashed,minimum width=6mm},label style={inner sep=1pt}]{0} &  &  &  & \qdat{\theta_{0}(4)}\vqw{1} &  & \qdat{\theta_{0}(5)}\vqw{1} &  &  & \qdat{\theta_{0}(6)}\vqw{1} &  &  \\
+    \lstick{$\theta_{1}$} & \qwbundle{b_{\mathrm{rot}}} &  &  &  &  &  &  & \qdat{\theta_{1}(4)}\vqw{1} &  & \qdat{\theta_{1}(5)}\vqw{1} &  &  & \qdat{\theta_{1}(6)}\vqw{1} &  &  \\
+    \lstick{$G_0$} &  &  &  &  &  &  &  & \targ{} &  & \targ{} &  &  & \targ{}\vqw{1} &  &  \\
+    \lstick{$G_1$} &  &  &  &  &  &  &  &  &  &  &  &  & \targ{} &  & 
+  \end{quantikz}}
+\end{document}

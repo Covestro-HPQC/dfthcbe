@@ -1,0 +1,31 @@
+# The intensive tier (pytest -m intensive): the exhaustive sweeps and the larger contractions,
+# too slow for every pull request, so after every merge into main, or by hand.
+
+name: Intensive tests
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  intensive:
+
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install pytest
+        pip install .
+    - name: Test the intensive tier
+      # The cirq statevector simulations of the two PREPAREs need more memory than a runner has.
+      run: |
+        pytest tests -m intensive -s --ignore=tests/test_outer_prepare.py --ignore=tests/test_inner_prepare.py

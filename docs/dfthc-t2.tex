@@ -1,0 +1,39 @@
+% Render: latexmk -pdf -outdir=/tmp/ltxbuild dfthc-t2.tex
+%         pdftocairo -svg /tmp/ltxbuild/dfthc-t2.pdf dfthc-t2.svg
+\documentclass[border=8pt]{standalone}
+\usepackage{amsmath,amssymb}
+\usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{quantikz2,calc}
+\input{circuit-macros}
+\newcommand{\lsos}{\Lambda}
+\begin{document}
+\pagecolor{white}
+  {%
+  $\begin{array}{r@{\;\;=\;\;}l}
+    \begin{quantikz}[row sep={0.72cm,between origins}, column sep=0.22cm, font=\small]
+      \lstick{$a$}    & \gate[3]{\mathrm{BE}\!\left[\dfrac{H_{\mathrm{SA}}}{\lsos}-I\right]} & \\
+      \lstick{$B$}    &  & \\
+      \lstick{$\psi$} &  &
+    \end{quantikz}
+    &
+    \begin{quantikz}[row sep={0.72cm,between origins}, column sep=0.22cm, font=\small]
+      \lstick{$a$}    & \gate{\mathrm{PREP}} & \qmux{\alpha}\vqw{1}
+                      & \gate{\mathrm{PREP}^\dagger} & \\
+      \lstick{$B$}    &  & \gate[2]{\mathrm{BE}\big[T_2\big(
+                          \mathrm{BE}[O^\dagger_\alpha/\lambda_\alpha],\,
+                          \mathrm{BE}[O_\alpha/\lambda_\alpha]\big)\big]} &  & \\
+      \lstick{$\psi$} &  &  &  &
+    \end{quantikz}
+    \\[3ex]
+    &
+    \begin{quantikz}[row sep={0.72cm,between origins}, column sep=0.22cm, font=\small]
+      \lstick{$a$}    & \gate{\mathrm{PREP}} & \qmux{\alpha}\vqw{1} &
+                      & \qmux{\alpha}\vqw{1} & \gate{\mathrm{PREP}^\dagger} & \\
+      \lstick{$B$}    &  & \gate[2]{\mathrm{BE}[O_\alpha/\lambda_\alpha]}
+                      & \gate[style={fill=red!10}]{\mathrm{REF}_{T_2}}
+                      & \gate[2]{\mathrm{BE}[O_\alpha/\lambda_\alpha]^\dagger} &  & \\
+      \lstick{$\psi$} &  &  &  &  &  &
+    \end{quantikz}
+  \end{array}$}
+\end{document}

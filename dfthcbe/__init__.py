@@ -14,9 +14,9 @@ Step numbers refer to the circuit in ``README.md``:
 * :mod:`dfthcbe.alias_data` -- the alias read and its erase (:class:`QROAMCleanHetero`), and
   exact symbolic costs of the pruned reads.
 * :mod:`dfthcbe.utils` -- shared helpers: ``s(.)`` (popcount) and ``beta(a, b)`` (aligned blocks)
-  as display functions; :func:`reconstruct`, the integrals of a DFTHC fit; and the walk's view of
-  a fit: :func:`walk_inputs`, :func:`walk_e_sos` and :func:`walk_integrals`; and
-  :func:`hamiltonian_matrix`, a Hamiltonian as a matrix on the system registers.
+  as display functions; :func:`reconstruct`, the integrals of a decomposed Hamiltonian; and the
+  walk's view of its factors: :func:`walk_inputs`, :func:`walk_e_sos` and :func:`walk_integrals`;
+  and :func:`hamiltonian_matrix`, a Hamiltonian as a matrix on the system registers.
 """
 
 from dfthcbe.alias_data import PrunedQROM, QROAMCleanHetero

@@ -138,7 +138,7 @@ This pulls in [Qualtran](https://github.com/quantumlib/Qualtran) 0.7 or newer (t
 
 ## From DFTHC decomposition tensors
 
-We have bundled six example DFTHC fits under `data/dfthc/*/factors.npz`, each with the arrays `U`, `W`, `w_B`, and the D1/Q1 split of $h^{(1)\prime}$, `w_plus`, `u_plus`, `w_minus`, `u_minus`. The walk is built from them directly:
+We have bundled six example DFTHC-decomposed Hamiltonians under `data/dfthc/*/factors.npz`, each with the arrays `U`, `W`, `w_B`, and the D1/Q1 split of $h^{(1)\prime}$, `w_plus`, `u_plus`, `w_minus`, `u_minus`. The walk is built from them directly:
 
 ```python
 import numpy as np
@@ -149,10 +149,10 @@ keys = ('U', 'W', 'w_B', 'w_plus', 'u_plus', 'w_minus', 'u_minus')
 walk = DFTHCWalk.from_factors(**{k: factors[k] for k in keys}, b_rot=15, b_k1=15, b_k2=15)
 be = walk.block_encoding
 be.Lambda             # 4.054: <0|BE|0> = H_SA / Lambda - I
-be.encoded_factors()  # the fit as the walk encodes it
+be.encoded_factors()  # the factors as the walk encodes them
 ```
 
-`encoded_factors()` is the fit as the walk encodes it, with its tables rounded to the walk's bits, not the input fit. It also holds the failures of the two $\mathrm{Unif}$, whose rotations are rounded to $s_u$ bits (`s`), so that each fails with a small probability. A failed $\mathrm{Unif}(b)$ turns `Maj` off on an SF row, but step 9 still gives the branch a sign, which adds to $w_B$ (`InnerPrepare.failure_signs`, issue [#42](https://github.com/Covestro-HPQC/dfthcbe/issues/42)). A failed $\mathrm{Unif}(x_o)$ is $-I$ under $\mathrm{REF} _{T_2}$, which only raises $\Lambda$ to $\Lambda / (1 - P(\mathrm{succ} _{x_o} = 0))$. So the walk's operator is exactly that of `encoded_factors()`. `encoded_factors(exact_prep=True)` leaves the failures out.
+`encoded_factors()` is the decomposed Hamiltonian as the walk encodes it, with its coefficients and unit vectors rounded to the walk's bits, not the input one. It also holds the failures of the two $\mathrm{Unif}$, whose rotations are rounded to $s_u$ bits (`s`), so that each fails with a small probability. A failed $\mathrm{Unif}(b)$ turns `Maj` off on an SF row, but step 9 still gives the branch a sign, which adds to $w_B$ (`InnerPrepare.failure_signs`, issue [#42](https://github.com/Covestro-HPQC/dfthcbe/issues/42)). A failed $\mathrm{Unif}(x_o)$ is $-I$ under $\mathrm{REF} _{T_2}$, which only raises $\Lambda$ to $\Lambda / (1 - P(\mathrm{succ} _{x_o} = 0))$. So the walk's operator is exactly that of `encoded_factors()`. `encoded_factors(exact_prep=True)` leaves the failures out.
 
 Furthermore `b_k1`, `b_k2` are the bits $b_{k_1}$, $b_{k_2}$ of the two alias $\mathrm{keep}$ values; either can be given as a precision instead, `precision_outer` or `precision_inner`, which sets the bits by Qualtran's `sub_bit_prec_from_epsilon`. The QROAM block sizes `k_1`, `k_2` and those of their erasures default to the cheapest in Toffolis. A walk operator can also be assembled from its three sub-bloqs, `DFTHCWalk(DFTHCBlockEncoding(outer, inner, select))` (see `notebooks/dfthc_walk.ipynb` for an example), or built in symbols with `DFTHCWalk.symbolic(...)` for closed forms of the cost. Neither holds a `Lambda` factor.
 
@@ -169,7 +169,7 @@ Two notebooks in `notebooks/` cover the package from two sides.
 
 The first one, [`notebooks/using_dfthcbe.ipynb`](notebooks/using_dfthcbe.ipynb), is intended to show practical usage of the package. It builds the walk of Fe4S4 from its DFTHC decomposition tensors, with the alias tables given in bits or as a target precision. It counts the Toffolis and qubits of the walk, controlled and not, and of the walk operator of every example in `data/dfthc`, draws the call graph with the Toffolis and qubits of each part, at any size, for instance to see how the walk operator grows with the bits of its angles. It shows how one can simulate parts of the walk operator as well: the two alias reads classically, with Qualtran's `call_classically`, address by address, and the equal superposition by tensor contraction. Last, for H2 in STO-3G, it contracts the whole block encoding, checks that `<0|BE|0> = H_SA / Lambda - I` for the Hamiltonian that the circuit encodes, and computes its ground-state energy. It then follows the error of the ground-state energy as the bits grow, or as the precision of the alias tables tightens.
 
-[`notebooks/dfthc_walk.ipynb`](notebooks/dfthc_walk.ipynb) is a more in-depth explanation of how the walk is built. It builds the walk three times: a tiny test case, the real-system Fe4S4 fit and `DFTHCWalk.symbolic` for the closed forms. It goes through the walk box by box, in circuit order. The sections are supplied by quantikz figures, drawn as the code builds it. The symbolic counts are verified to be equal to the numerics, and `Maj` and the Givens ladder are also simulated, to show that they apply the operators they should. It ends with the comparison with Low *et al.* [[1]](#references), row by row, in closed form and at FeMoco-54 (the FeMoco instance of their Table III, $N = 54$ and $`(R, B, C) = (10, 27, 27)`$), where the walk is 9641 Toffolis against their 9997.
+[`notebooks/dfthc_walk.ipynb`](notebooks/dfthc_walk.ipynb) is a more in-depth explanation of how the walk is built. It builds the walk three times: a tiny test case, the real-system Fe4S4 factors and `DFTHCWalk.symbolic` for the closed forms. It goes through the walk box by box, in circuit order. The sections are supplied by quantikz figures, drawn as the code builds it. The symbolic counts are verified to be equal to the numerics, and `Maj` and the Givens ladder are also simulated, to show that they apply the operators they should. It ends with the comparison with Low *et al.* [[1]](#references), row by row, in closed form and at FeMoco-54 (the FeMoco instance of their Table III, $N = 54$ and $`(R, B, C) = (10, 27, 27)`$), where the walk is 9641 Toffolis against their 9997.
 
 ## Tests
 
@@ -178,7 +178,7 @@ python -m pytest tests                  # default, about two minutes
 python -m pytest tests -m intensive     # exhaustive sweeps and cirq cross-checks, about 15 minutes
 ```
 
-Every bloq is checked twice: **correctness** through simulation by tensor contraction at a few orbitals (or `call_classically` for the permutations), up to the block `<0|W|0>` of the whole walk at `N = 2`, which, built from H2 in STO-3G, is checked against the Hamiltonian of the fit it encodes, its integrals read back off the block; and **cost** from the call graph, at FeMoco-54 and against the symbolic closed form. The error of the encoded fit is bounded by that of the input fit rounded to the same bits. The `intensive` tier, deselected by default and run in CI after every merge into `main`, builds the block from two random fits more, sweeps every `InnerSelect` branch at `N = 2` and `N = 3`, and checks both PREPAREs once more in cirq. The fits in `data/dfthc` are checked against FCI with pyscf, skipped if it is not installed.
+Every bloq is checked twice: **correctness** through simulation by tensor contraction at a few orbitals (or `call_classically` for the permutations), up to the block `<0|W|0>` of the whole walk at `N = 2`, which, built from H2 in STO-3G, is checked against the decomposed Hamiltonian it encodes, its integrals read back off the block; and **cost** from the call graph, at FeMoco-54 and against the symbolic closed form. The error of the encoded factors is bounded by that of the input factors rounded to the same bits. The `intensive` tier, deselected by default and run in CI after every merge into `main`, builds the block from two random decomposed Hamiltonians more, sweeps every `InnerSelect` branch at `N = 2` and `N = 3`, and checks both PREPAREs once more in cirq. The decomposed Hamiltonians in `data/dfthc` are checked against FCI with pyscf, skipped if it is not installed.
 
 ## Costs
 

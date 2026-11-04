@@ -44,8 +44,8 @@ class DFTHCBlockEncoding(Bloq):
     The second ``BE[O]`` needs ``InnerSelect.adjoint()`` because ``Maj`` is not Hermitian.
     Controlled, only ``REF_T2`` takes the control: on ``ctrl = 0`` the rest is ``U^dag U = I``.
 
-    Build it from a DFTHC fit with :meth:`from_factors`, from the three sub-bloqs, or as a
-    :meth:`symbolic` placeholder.
+    Build it from a decomposed Hamiltonian with :meth:`from_factors`, from the three sub-bloqs, or
+    as a :meth:`symbolic` placeholder.
 
     Args:
         outer: steps 1-4.
@@ -53,7 +53,7 @@ class DFTHCBlockEncoding(Bloq):
         select: steps 10-18.
         Lambda: ``Lambda`` of ``<0|BE|0> = H_SA / Lambda - I``: Eq. 33's over
             ``1 - P(succ_x_o = 0)``, as ``REF_T2`` is ``-I`` where ``Uniform(x_o)`` failed. The
-            tables only hold ratios and directions, so it is stored: :meth:`from_factors` sets it,
+            tables only hold ratios and unit vectors, so it is stored: :meth:`from_factors` sets it,
             else ``None``.
         is_controlled: whether a ``ctrl`` qubit is present. Set by ``.controlled()``.
 
@@ -165,7 +165,7 @@ class DFTHCBlockEncoding(Bloq):
         k_1: Optional[int] = None, k_2: Optional[int] = None, k_e1: Optional[int] = None,
         k_e2: Optional[int] = None, s: int = 7, exact_erase: bool = False,
     ) -> "DFTHCBlockEncoding":
-        r"""Build from a DFTHC fit, the arrays of its ``factors.npz``.
+        r"""Build from a decomposed Hamiltonian, the arrays of its ``factors.npz``.
 
         Each PREPARE takes its bits, ``b_k1`` and ``b_k2``, or a precision from which they follow
         (:func:`~dfthcbe.prepare.keep_bits`); ``k_1, k_2`` are the QROAM block sizes and
@@ -190,14 +190,14 @@ class DFTHCBlockEncoding(Bloq):
         )
 
     def encoded_factors(self, exact_prep: bool = False) -> Dict[str, np.ndarray]:
-        r"""The DFTHC fit this block encoding encodes, its alias and angle rounding included.
+        r"""The decomposed Hamiltonian encoded here, its alias and angle rounding included.
 
         Keyed as ``factors.npz``, so :func:`~dfthcbe.utils.walk_integrals` and
         :func:`~dfthcbe.utils.walk_e_sos` of it give ``H_SA`` of ``<0|BE|0> = H_SA / Lambda - I``.
         With ``p``, ``q`` the prepared outer and inner probabilities, ``w_b = sign(w_b) q_b
         sqrt(4 Lambda p_rc)`` and ``w_pm = Lambda p``, with Eq. 33's ``Lambda``,
-        ``self.Lambda (1 - P(succ_x_o = 0))``; the directions come from the loaded angles. A failed
-        ``Uniform(b)`` leaves an SF row's ``Maj`` off but not its sign: each ``q_b`` carries
+        ``self.Lambda (1 - P(succ_x_o = 0))``; the unit vectors come from the loaded angles. A
+        failed ``Uniform(b)`` leaves an SF row's ``Maj`` off but not its sign: each ``q_b`` carries
         ``1 - P(succ_b = 0)``, and ``w_B`` gains ``P(succ_b = 0)`` times
         :meth:`~dfthcbe.prepare.InnerPrepare.failure_signs`.
 
@@ -300,7 +300,7 @@ class DFTHCWalk(Bloq):
 
     @classmethod
     def from_factors(cls, *args, **kwargs) -> "DFTHCWalk":
-        """Build from a DFTHC fit, on :meth:`DFTHCBlockEncoding.from_factors`'s arguments."""
+        """Build from factors, on :meth:`DFTHCBlockEncoding.from_factors`'s arguments."""
         return cls(DFTHCBlockEncoding.from_factors(*args, **kwargs))
 
     @classmethod

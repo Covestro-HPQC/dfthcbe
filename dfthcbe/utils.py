@@ -1,4 +1,4 @@
-r"""Helpers shared by several modules, and the integrals of a DFTHC fit."""
+r"""Helpers shared by several modules, and the integrals of a decomposed Hamiltonian."""
 
 from __future__ import annotations
 
@@ -97,11 +97,12 @@ def _check_unit_rows(name: str, vectors: np.ndarray) -> None:
 
 
 def reconstruct(U, W, h_sym, h1) -> Tuple[np.ndarray, np.ndarray]:
-    r"""The integrals ``(h1e, eri)`` of a DFTHC fit, chemists' order, as for an FCI solver.
+    r"""The integrals ``(h1e, eri)`` of a decomposed Hamiltonian, in chemists' order for FCI.
 
-    The fit ``h2' = sum_rc h_rc (x) h_rc``, ``h_rc = sum_b w_b u_b u_b^T`` (Eq. 24), is of the
-    BLISS-shifted two-body tensor, so ``eri`` takes the shift ``(h_sym (x) I + I (x) h_sym) / 2``
-    off again. ``h1e`` normal-orders ``sum h1 E + 1/2 sum eri E E``.
+    The decomposed ``h2' = sum_rc h_rc (x) h_rc``, ``h_rc = sum_b w_b u_b u_b^T`` (Eq. 24), is of
+    the BLISS-shifted two-body tensor, so ``eri`` takes the shift
+    ``(h_sym (x) I + I (x) h_sym) / 2`` off again. ``h1e`` normal-orders
+    ``sum h1 E + 1/2 sum eri E E``.
 
     Args:
         U: ``(R, B, N)`` unit vectors ``u_b^(r)``.
@@ -120,7 +121,7 @@ def reconstruct(U, W, h_sym, h1) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def walk_inputs(W, w_B, w_plus, w_minus) -> Tuple[np.ndarray, np.ndarray]:
-    r"""The LCU weights of a DFTHC fit, as the walk's two PREPAREs take them.
+    r"""The LCU weights of a decomposed Hamiltonian, as the walk's two PREPAREs take them.
 
     Returns:
         outer: ``(N+RC,)``: ``lambda_SF,rc**2 = (sum_b |w_b| + |w_B|)**2 / 2`` at ``x_o = rC + c``
@@ -143,7 +144,7 @@ def walk_e_sos(W, w_B, w_minus) -> float:
 def walk_integrals(U, W, w_B, w_plus, u_plus, w_minus, u_minus) -> Tuple[np.ndarray, np.ndarray]:
     r"""The integrals ``(h1e, eri)`` of what the walk encodes, ``sum O^dag O + E_SOS`` (Eq. 23).
 
-    This is the BLISS-shifted Hamiltonian: on the fit's ``eta`` electrons it differs from
+    This is the BLISS-shifted Hamiltonian: on the factors' ``eta`` electrons it differs from
     :func:`reconstruct`'s by a constant. Its one-body part is ``h^(1)'`` from the D1/Q1 split,
     plus ``sum_rc W^(rc) h_rc`` with ``W^(rc) = w_B - sum_b w_b``.
     """

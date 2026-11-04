@@ -4,14 +4,15 @@ r"""Tests for :class:`DFTHCBlockEncoding` (steps 1-27) and :class:`DFTHCWalk` (a
 sides, ``<0|BE|0>`` is ``sum_x p_x (2 A_x^dag A_x - I)``, ``A_x`` being the inner LCU of the
 generator ``x_o`` selects. The reference is built from the alias tables and angles the bloqs
 actually load, so it is exact and ``b_rot`` can be tiny. It needs ``exact_erase`` on all three
-sub-bloqs, as the measurement-based erases have no decomposition. Built from a DFTHC fit, the
-block is ``H_SA / Lambda - I`` for the ``H_SA`` of the fit it encodes (``encoded_factors``): the
-default tier checks it on H2 in STO-3G, where ``Uniform(b)`` fails. The ``intensive`` tier adds the
-reference above, a random fit where ``Uniform(x_o)`` fails and one where neither does, and checks
-that the controlled block encoding is the identity on ``ctrl = 0`` and the block on ``ctrl = 1``.
-``REF_T2`` is also contracted on its own, the reflection about ``|0>_B |1>_succ_x_o``. The encoded
-fit's error is bounded by that of the fit rounded to the same bits. **Cost** by the call graph, at
-FeMoco-54. The reflections are pinned in ``test_reflections``.
+sub-bloqs, as the measurement-based erases have no decomposition. Built from a decomposed
+Hamiltonian, the block is ``H_SA / Lambda - I`` for the ``H_SA`` of the decomposed Hamiltonian it
+encodes (``encoded_factors``): the default tier checks it on H2 in STO-3G, where ``Uniform(b)``
+fails. The ``intensive`` tier adds the reference above, a random decomposed Hamiltonian where
+``Uniform(x_o)`` fails and one where neither does, and checks that the controlled block encoding is
+the identity on ``ctrl = 0`` and the block on ``ctrl = 1``. ``REF_T2`` is also contracted on its
+own, the reflection about ``|0>_B |1>_succ_x_o``. The encoded factors' error is bounded by that of
+the input factors rounded to the same bits. **Cost** by the call graph, at FeMoco-54. The
+reflections are pinned in ``test_reflections``.
 """
 
 import itertools
@@ -31,7 +32,7 @@ from dfthcbe import (
 )
 from dfthcbe.block_encoding import INNER_ANCILLAS, OUTER_ANCILLAS
 from test_inner_select import _generator
-from test_utils import FIT_ERROR, KEYS, load_fit, random_fit
+from test_utils import FACTORS_ERROR, KEYS, load_factors, random_factors
 
 # FeMoco-54, the README's worked example.
 FEMOCO = dict(num_orb=54, num_r=10, num_b=27, num_c=27, b_rot=15, b_k=15, k_1=2, k_2=4)
@@ -168,25 +169,25 @@ def test_signal_block_is_the_block_encoding():
 
 
 def _factors(name):
-    return {k: v for k, v in load_fit(name)[0].items() if k in KEYS}
+    return {k: v for k, v in load_factors(name)[0].items() if k in KEYS}
 
 
 # (N, R, B, C) = (2, 3, 1, 1): X_o = 5, so Uniform(x_o) fails; H2 has B + 1 = 3, so Uniform(b) does.
-FITS = {
-    'x_o_fails': lambda: random_fit(2, 3, 1, 1, seed=3),
-    'none_fail': lambda: random_fit(2, 2, 1, 1, seed=3),
+FACTORS = {
+    'x_o_fails': lambda: random_factors(2, 3, 1, 1, seed=3),
+    'none_fail': lambda: random_factors(2, 2, 1, 1, seed=3),
     'h2': lambda: _factors('h2_sto3g_R2_B2_C1'),
 }
 
 
-def _from_fit(fit):
+def _from_factors(name):
     return DFTHCBlockEncoding.from_factors(
-        **FITS[fit](), b_rot=4, b_k1=2, b_k2=2, s=4, exact_erase=True
+        **FACTORS[name](), b_rot=4, b_k1=2, b_k2=2, s=4, exact_erase=True
     )
 
 
 def _h_sa(be):
-    """``H_SA`` of the fit ``be`` encodes, a ``16 x 16`` Fock matrix."""
+    """``H_SA`` of the decomposed Hamiltonian ``be`` encodes, a ``16 x 16`` Fock matrix."""
     enc = be.encoded_factors()
     e_sos = walk_e_sos(enc['W'], enc['w_B'], enc['w_minus'])
     return hamiltonian_matrix(*walk_integrals(**enc)) - e_sos * np.eye(16)
@@ -216,22 +217,22 @@ def _integrals(matrix, n):
     return h1e, eri, coeffs[-1]
 
 
-@pytest.mark.parametrize('fit', [
+@pytest.mark.parametrize('name', [
     'h2',
     pytest.param('x_o_fails', marks=pytest.mark.intensive),
     pytest.param('none_fail', marks=pytest.mark.intensive),
 ])
-def test_from_factors_encodes_the_fit(fit):
-    """(1-27) Built from a fit, ``<0|BE|0> = H_SA / Lambda - I`` to machine precision, ``H_SA``
-    the Fock matrix of ``walk_integrals - walk_e_sos`` of the fit it encodes, rounding included:
-    the tables, their signs, the SF ``-Z``, the D1/Q1 split, a failed ``Uniform(b)``, a failed
-    ``Uniform(x_o)`` and ``Lambda`` in one check. The integrals and ``E_SoS`` read back off the
-    block are those of the encoded fit."""
-    be = _from_fit(fit)
+def test_from_factors_encodes_the_hamiltonian(name):
+    """(1-27) Built from a decomposed Hamiltonian, ``<0|BE|0> = H_SA / Lambda - I`` to machine
+    precision, ``H_SA`` the Fock matrix of ``walk_integrals - walk_e_sos`` of the decomposed
+    Hamiltonian it encodes, rounding included: the tables, their signs, the SF ``-Z``, the D1/Q1
+    split, a failed ``Uniform(b)``, a failed ``Uniform(x_o)`` and ``Lambda`` in one check. The
+    integrals and ``E_SoS`` read back off the block are those of the encoded factors."""
+    be = _from_factors(name)
     assert any(len(set(row)) > 1 for row in be.inner.sgn)  # a row that mixes signs
     fails = [prep.uniform.failure_probability() > 0 for prep in (be.outer, be.inner)]
     expected = dict(x_o_fails=[True, False], none_fail=[False, False], h2=[False, True])
-    assert fails == expected[fit]
+    assert fails == expected[name]
     block = _signal_block(be)
     assert np.allclose(block, _h_sa(be) / be.Lambda - np.eye(16), atol=1e-10)
     enc = be.encoded_factors()
@@ -241,9 +242,9 @@ def test_from_factors_encodes_the_fit(fit):
     assert np.isclose(-minus_e_sos, walk_e_sos(enc['W'], enc['w_B'], enc['w_minus']), atol=1e-8)
 
 
-@pytest.mark.parametrize('name', list(FIT_ERROR))
-def test_encoded_factors_tend_to_the_fit(name):
-    """At 24 bits of ``keep``, of angle and of the ``Uniform`` rotations, the walk encodes its fit
+@pytest.mark.parametrize('name', list(FACTORS_ERROR))
+def test_encoded_factors_tend_to_the_input(name):
+    """At 24 bits of ``keep``, of angle and of the ``Uniform`` rotations, the walk encodes its input
     to about ``1e-7``; the encoded weights keep ``Lambda`` exactly."""
     f = _factors(name)
     be = DFTHCWalk.from_factors(**f, b_rot=24, b_k1=24, b_k2=24, s=24).block_encoding
@@ -258,8 +259,8 @@ def test_encoded_factors_tend_to_the_fit(name):
 
 
 def _cut(f, b_rot, b_k):
-    """The fit with each component of ``u`` rounded to ``b_rot`` bits (rows normalized again) and
-    each ``w`` to ``b_k`` bits of its array's largest."""
+    """The factors with each component of ``u`` rounded to ``b_rot`` bits (rows normalized again)
+    and each ``w`` to ``b_k`` bits of its array's largest."""
     out = {}
     for key in ('U', 'u_plus', 'u_minus'):
         u = np.round(np.asarray(f[key]) * 2.0 ** (b_rot - 1)) / 2.0 ** (b_rot - 1)
@@ -282,17 +283,17 @@ def _integral_errors(f, g):
     return errors
 
 
-# The encoded error over that of the fit rounded to the same bits stays below these. Most of it
-# is the angles: b_rot-bit Givens angles move a direction about 5 times a rounded component's.
+# The encoded error over that of the input factors rounded to the same bits stays below these. Most
+# of it is the angles: b_rot-bit Givens angles move a direction about 5 times a rounded component's.
 ROUNDING_BOUNDS = {('h1e', 'spectral'): 25, ('h1e', 'Frobenius'): 20, ('h1e', 'max'): 25,
                    ('eri', 'spectral'): 20, ('eri', 'Frobenius'): 20, ('eri', 'max'): 35}
 
 
-@pytest.mark.parametrize('name', list(FIT_ERROR))
-def test_encoded_errors_are_bounded_by_the_rounded_fit(name):
-    """With exact equal superpositions (``exact_prep``), the encoded fit is off the fit by at most
-    ``ROUNDING_BOUNDS`` times the fit rounded to the same bits, ``u`` to ``b_rot`` and ``w`` to
-    ``b_k1 = b_k2``, for ``b_rot, b_k`` in ``{6, 8, ..., 14}``."""
+@pytest.mark.parametrize('name', list(FACTORS_ERROR))
+def test_encoded_errors_are_bounded_by_the_rounded_input(name):
+    """With exact equal superpositions (``exact_prep``), the encoded factors are off the input by at
+    most ``ROUNDING_BOUNDS`` times the input rounded to the same bits, ``u`` to ``b_rot`` and ``w``
+    to ``b_k1 = b_k2``, for ``b_rot, b_k`` in ``{6, 8, ..., 14}``."""
     f = _factors(name)
     for b_rot, b_k in itertools.product(range(6, 15, 2), repeat=2):
         be = DFTHCBlockEncoding.from_factors(**f, b_rot=b_rot, b_k1=b_k, b_k2=b_k, s=4)
@@ -305,7 +306,7 @@ def test_encoded_errors_are_bounded_by_the_rounded_fit(name):
 def test_exact_prep_leaves_out_only_the_failed_uniform():
     """On H2, where ``Uniform(b)`` fails, ``exact_prep`` takes its ``1 - P(succ_b = 0)`` off ``W``
     and changes ``w_B``; the directions and ``w_pm`` stay."""
-    be = _from_fit('h2')
+    be = _from_factors('h2')
     fail = be.inner.uniform.failure_probability()
     exact, enc = be.encoded_factors(exact_prep=True), be.encoded_factors()
     assert fail > 0 and np.allclose(enc['W'], (1 - fail) * exact['W'])
@@ -317,7 +318,7 @@ def test_exact_prep_leaves_out_only_the_failed_uniform():
 def test_from_factors_takes_bits_or_a_precision():
     """Per PREPARE, its bits or a precision: here ``b_k1`` from ``precision_outer`` over the
     ``N + RC = 4`` outer values, and ``b_k2`` as given."""
-    f = random_fit(2, 2, 1, 1, seed=3)
+    f = random_factors(2, 2, 1, 1, seed=3)
     be = DFTHCBlockEncoding.from_factors(**f, b_rot=4, precision_outer=1e-2, b_k2=3, s=4)
     assert (be.outer.b_k1, be.inner.b_k2) == (5, 3)
     with pytest.raises(ValueError):
@@ -335,7 +336,7 @@ def test_controlled_block_encoding_is_the_identity_on_ctrl_0():
 def test_controlled_block_encoding_is_the_block_on_ctrl_1():
     """On ``ctrl = 1``, ``REF_T2``'s ``-1`` moves onto ``ctrl``: the block of the uncontrolled
     one, the failed ``Uniform(x_o)`` included."""
-    be = _from_fit('x_o_fails')
+    be = _from_factors('x_o_fails')
     got = _signal_block(be.controlled(), ctrl=1)
     assert np.allclose(got, _h_sa(be) / be.Lambda - np.eye(16), atol=1e-10)
 

@@ -294,6 +294,10 @@ pdftocairo -svg /tmp/ltxbuild/dfthc-walk.pdf dfthc-walk.svg
 
 Emiel Koridon (Covestro) and Oumarou Oumarou (Covestro) did the main work: the design and implementation of the bloqs, the tests and the documentation. Nicholas C. Rubin (Google) and Christian Gogolin (Covestro) supervised the project.
 
+## Use of AI
+
+Parts of the code, tests and documentation were written with AI coding assistants. The authors take full responsibility.
+
 ## Acknowledgements
 
 Covestro acknowledges funding from the German Bundesministerium für Forschung, Technologie und Raumfahrt (BMFTR) through project PASQUOPS (13N17250).

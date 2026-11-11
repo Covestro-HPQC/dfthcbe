@@ -2,11 +2,14 @@
 
 This is an implementation of the DFTHC block encoding of a SOSSA Hamiltonian, and its corresponding qubitized walk operator, referenced in "Fast quantum simulation of electronic structure by spectral amplification", Phys. Rev. X **15**, 041016 (2025) [[1]](#references).
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/dfthc-overview-dark.png">
+  <img alt="The walk operator, the energy error against the bits, and the Toffolis per box" src="docs/dfthc-overview-light.png">
+</picture>
+
+The walk operator $W$ that `dfthcbe` builds and costs, one bloq per box: steps 1-27 are the block encoding `DFTHCBlockEncoding`, and step 28 is the reflection that makes it the walk `DFTHCWalk`. Below left, the error of the ground-state energy of the Hamiltonian the walk encodes, against FCI, as the bits of the angles, the alias tables and the equal superpositions grow; below right, the Toffolis per walk step of each bundled example, split into the boxes of the circuit, with its active space (electrons, orbitals). [The walk operator: bloq by bloq](#the-walk-operator-bloq-by-bloq) describes each box.
+
 Every bloq in this implementation is decomposable into elementary gates except the three measurement-based erasures, namely `RotDataErase` and the two alias erases, which for now (see issue [#14](https://github.com/Covestro-HPQC/dfthcbe/issues/14)) are accounted for by their cost in the call graph. The resource count, numeric or symbolic, can be produced for generic input parameters. The walk operator and its sub-bloqs can be simulated by tensor contraction with `exact_erase=True`, which replaces each erasure by the exact inverse of its read.
-
-![The walk operator, one box per bloq](docs/dfthc-walk.svg)
-
-The walk operator $W$ that `dfthcbe` builds and costs, one bloq per box: steps 1-27 are the block encoding `DFTHCBlockEncoding`, and step 28 is the reflection that makes it the walk `DFTHCWalk`. [The walk operator: bloq by bloq](#the-walk-operator-bloq-by-bloq) describes each box.
 
 ## Installation
 
@@ -41,7 +44,7 @@ be.encoded_factors()  # the factors as the walk encodes them
 
 Two notebooks in `notebooks/` cover the package from two sides.
 
-[`notebooks/using_dfthcbe.ipynb`](notebooks/using_dfthcbe.ipynb) shows how to use the package: it draws the circuit, counts the Toffolis and qubits of the walk of every example in `data/dfthc`, numerically and in closed form, and simulates its parts. It then contracts the block encoding of H2 in STO-3G to check that it encodes the Hamiltonian, and follows the error of the ground-state energy as the bits grow, or as the precision of the alias tables tightens, for H2 and naphthalene.
+[`notebooks/using_dfthcbe.ipynb`](notebooks/using_dfthcbe.ipynb) shows how to use the package: it draws the circuit, counts the Toffolis and qubits of the walk of every example in `data/dfthc`, in total, per box of the circuit and in closed form, and simulates its parts. It then contracts the block encoding of H2 in STO-3G to check that it encodes the Hamiltonian, and follows the error of the ground-state energy as the bits grow, or as the precision of the alias tables tightens, for H2 and naphthalene.
 
 [`notebooks/dfthc_walk.ipynb`](notebooks/dfthc_walk.ipynb) goes through the walk box by box, in circuit order, with the figure, the drawing at a tiny size and the closed-form cost of each box; the closed forms equal the counts of the concrete circuit, and `Maj` and the Givens ladder are simulated. It ends with the comparison with Low *et al.* [[1]](#references), row by row, in closed form and at FeMoco-54, where the walk is 9641 Toffolis against their 9997.
 
@@ -208,6 +211,8 @@ cd docs
 latexmk -pdf -outdir=/tmp/ltxbuild dfthc-walk.tex
 pdftocairo -svg /tmp/ltxbuild/dfthc-walk.pdf dfthc-walk.svg
 ```
+
+The opening figure, in its light and dark versions, is redrawn by `python docs/dfthc-overview.py`, which also needs pyscf.
 
 ## Costs
 

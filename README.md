@@ -2,7 +2,51 @@
 
 This is an implementation of the DFTHC block encoding of a SOSSA Hamiltonian, and its corresponding qubitized walk operator, referenced in "Fast quantum simulation of electronic structure by spectral amplification", Phys. Rev. X **15**, 041016 (2025) [[1]](#references).
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/dfthc-overview-dark.png">
+  <img alt="The walk operator, the energy error against the bits, and the Toffolis per box" src="docs/dfthc-overview-light.png">
+</picture>
+
+The walk operator $W$ that `dfthcbe` builds and costs, one bloq per box: steps 1-27 are the block encoding `DFTHCBlockEncoding`, and step 28 is the reflection that makes it the walk `DFTHCWalk`. Below left, the error of the ground-state energy of the Hamiltonian the walk encodes, against FCI, as the bits of the angles, the alias tables and the equal superpositions grow; below right, the Toffolis per walk step of each bundled example, split into the boxes of the circuit, with its active space (electrons, orbitals). [The walk operator: bloq by bloq](#the-walk-operator-bloq-by-bloq) describes each box.
+
 Every bloq in this implementation is decomposable into elementary gates except the three measurement-based erasures, namely `RotDataErase` and the two alias erases, which for now (see issue [#14](https://github.com/Covestro-HPQC/dfthcbe/issues/14)) are accounted for by their cost in the call graph. The resource count, numeric or symbolic, can be produced for generic input parameters. The walk operator and its sub-bloqs can be simulated by tensor contraction with `exact_erase=True`, which replaces each erasure by the exact inverse of its read.
+
+## Installation
+
+Needs Python 3.10 or newer. From the repository root:
+
+```bash
+pip install .        # or pip install -e . to edit the code in place
+```
+
+This pulls in [Qualtran](https://github.com/quantumlib/Qualtran) 0.7 or newer (tested with 0.7.0 and `main`). The notebooks' call-graph drawings also need Graphviz's `dot`.
+
+## Quick start
+
+Six example DFTHC-decomposed Hamiltonians are bundled under `data/dfthc/*/factors.npz`, each with the arrays `U`, `W`, `w_B`, and the D1/Q1 split of $h^{(1)\prime}$, `w_plus`, `u_plus`, `w_minus`, `u_minus`, defined [below](#sum-of-squares-form-of-the-hamiltonian-and-spectral-amplification). The walk is built from them directly, and Qualtran counts its Toffolis and qubits:
+
+```python
+import numpy as np
+from qualtran.resource_counting import get_cost_value, QECGatesCost, QubitCount
+from dfthcbe import DFTHCWalk
+
+factors = np.load('data/dfthc/naphthalene/factors.npz')
+keys = ('U', 'W', 'w_B', 'w_plus', 'u_plus', 'w_minus', 'u_minus')
+walk = DFTHCWalk.from_factors(**{k: factors[k] for k in keys}, b_rot=15, b_k1=15, b_k2=15)
+get_cost_value(walk, QECGatesCost()).total_toffoli_only()  # 1937 Toffolis
+get_cost_value(walk, QubitCount())                          # 358 qubits
+be = walk.block_encoding
+be.Lambda             # 4.054: <0|BE|0> = H_SA / Lambda - I
+be.encoded_factors()  # the factors as the walk encodes them
+```
+
+## Notebooks
+
+Two notebooks in `notebooks/` cover the package from two sides.
+
+[`notebooks/using_dfthcbe.ipynb`](notebooks/using_dfthcbe.ipynb) shows how to use the package: it draws the circuit, counts the Toffolis and qubits of the walk of every example in `data/dfthc`, in total, per box of the circuit and in closed form, and simulates its parts. It then contracts the block encoding of H2 in STO-3G to check that it encodes the Hamiltonian, and follows the error of the ground-state energy as the bits grow, or as the precision of the alias tables tightens, for H2 and naphthalene.
+
+[`notebooks/dfthc_walk.ipynb`](notebooks/dfthc_walk.ipynb) goes through the walk box by box, in circuit order, with the figure, the drawing at a tiny size and the closed-form cost of each box; the closed forms equal the counts of the concrete circuit, and `Maj` and the Givens ladder are simulated. It ends with the comparison with Low *et al.* [[1]](#references), row by row, in closed form and at FeMoco-54, where the walk is 9641 Toffolis against their 9997.
 
 ## Sum-of-squares form of the Hamiltonian and spectral amplification
 
@@ -86,9 +130,7 @@ The block encoding is the bloq `DFTHCBlockEncoding`, and $W$ the bloq `DFTHCWalk
 
 ### The walk operator
 
-![The walk operator, one box per bloq](docs/dfthc-walk.svg)
-
-$|x_o\rangle$ is the outer selection, with $X_o = N + RC$ values, together with the spin $\sigma_1$ of a D1/Q1 generator. Each $\mathrm{BE}[O_\alpha / \lambda_\alpha]$ is an inner LCU over $b$, so all three inner boxes read $x_o$:
+In [the walk figure](#dfthcbe) at the top, $|x_o\rangle$ is the outer selection, with $X_o = N + RC$ values, together with the spin $\sigma_1$ of a D1/Q1 generator. Each $\mathrm{BE}[O_\alpha / \lambda_\alpha]$ is an inner LCU over $b$, so all three inner boxes read $x_o$:
 
 ```math
 \mathrm{SEL} = \sum_{x_o} \lvert x_o \rangle \langle x_o \rvert \otimes
@@ -126,33 +168,9 @@ Steps 1-23, with the register widths in symbols. The bands carry the bloq names,
 | `In_Z` | the phase fixup of that erase, addressed like the read |
 | `R`, `Maj` | Givens ladder and Majorana gate on the system |
 
-## Installation
-
-Needs Python 3.10 or newer. From the repository root:
-
-```bash
-pip install .        # or pip install -e . to edit the code in place
-```
-
-This pulls in [Qualtran](https://github.com/quantumlib/Qualtran) 0.7 or newer (tested with 0.7.0 and `main`). The notebooks' call-graph drawings also need Graphviz's `dot`.
-
 ## From DFTHC decomposition tensors
 
-We have bundled six example DFTHC-decomposed Hamiltonians under `data/dfthc/*/factors.npz`, each with the arrays `U`, `W`, `w_B`, and the D1/Q1 split of $h^{(1)\prime}$, `w_plus`, `u_plus`, `w_minus`, `u_minus`. The walk is built from them directly:
-
-```python
-import numpy as np
-from dfthcbe import DFTHCWalk
-
-factors = np.load('data/dfthc/naphthalene/factors.npz')
-keys = ('U', 'W', 'w_B', 'w_plus', 'u_plus', 'w_minus', 'u_minus')
-walk = DFTHCWalk.from_factors(**{k: factors[k] for k in keys}, b_rot=15, b_k1=15, b_k2=15)
-be = walk.block_encoding
-be.Lambda             # 4.054: <0|BE|0> = H_SA / Lambda - I
-be.encoded_factors()  # the factors as the walk encodes them
-```
-
-`encoded_factors()` is the decomposed Hamiltonian as the walk encodes it, with its coefficients and unit vectors rounded to the walk's bits, not the input one. It also holds the failures of the two $\mathrm{Unif}$, whose rotations are rounded to $s_u$ bits (`s`), so that each fails with a small probability. A failed $\mathrm{Unif}(b)$ turns `Maj` off on an SF row, but step 9 still gives the branch a sign, which adds to $w_B$ (`InnerPrepare.failure_signs`, issue [#42](https://github.com/Covestro-HPQC/dfthcbe/issues/42)). A failed $\mathrm{Unif}(x_o)$ is $-I$ under $\mathrm{REF} _{T_2}$, which only raises $\Lambda$ to $\Lambda / (1 - P(\mathrm{succ} _{x_o} = 0))$. So the walk's operator is exactly that of `encoded_factors()`. `encoded_factors(exact_prep=True)` leaves the failures out.
+`encoded_factors()`, the last line of the [quick start](#quick-start), is the decomposed Hamiltonian as the walk encodes it, with its coefficients and unit vectors rounded to the walk's bits, not the input one. It also holds the failures of the two $\mathrm{Unif}$, whose rotations are rounded to $s_u$ bits (`s`), so that each fails with a small probability. A failed $\mathrm{Unif}(b)$ turns `Maj` off on an SF row, but step 9 still gives the branch a sign, which adds to $w_B$ (`InnerPrepare.failure_signs`, issue [#42](https://github.com/Covestro-HPQC/dfthcbe/issues/42)). A failed $\mathrm{Unif}(x_o)$ is $-I$ under $\mathrm{REF} _{T_2}$, which only raises $\Lambda$ to $\Lambda / (1 - P(\mathrm{succ} _{x_o} = 0))$. So the walk's operator is exactly that of `encoded_factors()`. `encoded_factors(exact_prep=True)` leaves the failures out.
 
 Furthermore `b_k1`, `b_k2` are the bits $b_{k_1}$, $b_{k_2}$ of the two alias $\mathrm{keep}$ values; either can be given as a precision instead, `precision_outer` or `precision_inner`, which sets the bits by Qualtran's `sub_bit_prec_from_epsilon`. The QROAM block sizes `k_1`, `k_2` and those of their erasures default to the cheapest in Toffolis. A walk operator can also be assembled from its three sub-bloqs, `DFTHCWalk(DFTHCBlockEncoding(outer, inner, select))` (see `notebooks/dfthc_walk.ipynb` for an example), or built in symbols with `DFTHCWalk.symbolic(...)` for closed forms of the cost. Neither holds a `Lambda` factor.
 
@@ -163,13 +181,17 @@ Effective integrals `(h1e, eri)` can be reconstructed for both the DFTHC Hamilto
 
 `hamiltonian_matrix(h1e, eri)` writes the Hamiltonian as a matrix on the `2**(2*N)` Fock states of the walk's system registers `(psi_up, psi_dn)`, to compare with a simulation of the circuit.
 
-## Notebooks
+## Reference
 
-Two notebooks in `notebooks/` cover the package from two sides.
+### Conventions
 
-The first one, [`notebooks/using_dfthcbe.ipynb`](notebooks/using_dfthcbe.ipynb), is intended to show practical usage of the package. It builds the walk of Fe4S4 from its DFTHC decomposition tensors, with the alias tables given in bits or as a target precision. It counts the Toffolis and qubits of the walk, controlled and not, and of the walk operator of every example in `data/dfthc`, draws the call graph with the Toffolis and qubits of each part, at any size, for instance to see how the walk operator grows with the bits of its angles. It shows how one can simulate parts of the walk operator as well: the two alias reads classically, with Qualtran's `call_classically`, address by address, and the equal superposition by tensor contraction. Last, for H2 in STO-3G, it contracts the whole block encoding, checks that `<0|BE|0> = H_SA / Lambda - I` for the Hamiltonian that the circuit encodes, and computes its ground-state energy. It then follows the error of the ground-state energy as the bits grow, or as the precision of the alias tables tightens.
-
-[`notebooks/dfthc_walk.ipynb`](notebooks/dfthc_walk.ipynb) is a more in-depth explanation of how the walk is built. It builds the walk three times: a tiny test case, the real-system Fe4S4 factors and `DFTHCWalk.symbolic` for the closed forms. It goes through the walk box by box, in circuit order. The sections are supplied by quantikz figures, drawn as the code builds it. The symbolic counts are verified to be equal to the numerics, and `Maj` and the Givens ladder are also simulated, to show that they apply the operators they should. It ends with the comparison with Low *et al.* [[1]](#references), row by row, in closed form and at FeMoco-54 (the FeMoco instance of their Table III, $N = 54$ and $`(R, B, C) = (10, 27, 27)`$), where the walk is 9641 Toffolis against their 9997.
+- **SF first.** `x_o < RC` is SF, with `x_o = rC + c`; the last `N` values are the one-body tail, its `N_+` D1 rows first, then Q1.
+- **`G0 = 0` is SF.** The tail load writes `G`, the SF load fires on `G0 = 0`.
+- **Signs.** `InnerPrepare` loads `sgn = [w_b < 0]` and `d_sgn = sgn XOR sgn[alt]`, and `InnerSigns` applies `Z(sgn)` and `CZ(less_than_b, d_sgn)`, so every branch carries the sign of the surviving `b`.
+- **Jordan-Wigner.** `gamma_{j,0} = Z_0 .. Z_{j-1} X_j` and `gamma_{j,1} = Z_0 .. Z_{j-1} Y_j` on one spin register, qubit 0 the most significant, as in Eq. (B12) of [[1]](#references). So `a_j = Z_0 .. Z_{j-1} (X_j + iY_j)/2`: `|1>` is occupied, and on one mode `n = (1 - Z)/2`.
+- **Givens ladder.** `GivensRotationLadder` applies `U(u)` with `U(u)^dag gamma_0 U(u) = sum_j u_j gamma_j`, so `Maj` only ever acts on qubit 0 of `psi_dn`: `-Z` for SF, `a_u` for D1, `a_u^dag` for Q1. An angle `theta` is stored as the integer `round(theta / (2 pi) * 2^(b_rot - 1))`.
+- **`Maj`.** On qubit 0 the string is empty, so `gamma_0 = X`, `gamma_1 = Y`, and the SF pair is `i gamma_0 gamma_1 = -Z` (with `n_u = (1 + i gamma_0 gamma_1)/2`), D1's `a_u` is `(X + iY)/2`. Fig. 4 of [[1]](#references) applies `+Z` on SF, which is `i gamma_1 gamma_0`, the order of its Eq. (B1); that would flip every `w_b` against the identity term `w_B`. `Maj` applies `-Z = diag(-1, 1)` as the same `CCZ`, with the target as an open control and `b_neq_B` as the Z target, so the Toffoli count is unchanged. The Jordan-Wigner ordering does not enter: in `gamma_0 gamma_1` of one mode the string squares to the identity.
+- **Erases.** By default the loaded tables are erased by X-measurement, a cost-only bloq with the phase-fixup count of [[1]](#references). `exact_erase=True` undoes each read by its exact inverse instead, a second read, which keeps every bloq unitary so it can be contracted. It warns, as that is not the circuit whose cost is reported.
 
 ## Tests
 
@@ -179,6 +201,18 @@ python -m pytest tests -m intensive     # exhaustive sweeps and cirq cross-check
 ```
 
 Every bloq is checked twice: **correctness** through simulation by tensor contraction at a few orbitals (or `call_classically` for the permutations), up to the block `<0|W|0>` of the whole walk at `N = 2`, which, built from H2 in STO-3G, is checked against the decomposed Hamiltonian it encodes, its integrals read back off the block; and **cost** from the call graph, at FeMoco-54 and against the symbolic closed form. The error of the encoded factors is bounded by that of the input factors rounded to the same bits. The `intensive` tier, deselected by default and run in CI after every merge into `main`, builds the block from two random decomposed Hamiltonians more, sweeps every `InnerSelect` branch at `N = 2` and `N = 3`, and checks both PREPAREs once more in cirq. The decomposed Hamiltonians in `data/dfthc` are checked against FCI with pyscf, skipped if it is not installed.
+
+## The figures
+
+`docs/*.tex` are standalone quantikz sources sharing `docs/circuit-macros.tex`. To redraw one:
+
+```bash
+cd docs
+latexmk -pdf -outdir=/tmp/ltxbuild dfthc-walk.tex
+pdftocairo -svg /tmp/ltxbuild/dfthc-walk.pdf dfthc-walk.svg
+```
+
+The opening figure, in its light and dark versions, is redrawn by `python docs/dfthc-overview.py`, which also needs pyscf.
 
 ## Costs
 
@@ -261,28 +295,6 @@ The symbols and registers, their names in the code (blank: written out), and the
 | $\sigma_0$ | inner spin: SF's spin sum, and the Majorana flavour on D1/Q1 | `sigma_0` | |
 | $\sigma_1$ | outer spin: the spin label of a D1/Q1 generator | `sigma_1` | |
 | $\sigma$ | $\sigma_{G_0}$, the control of the spin swap | `sg` | |
-
-## Reference
-
-### Conventions
-
-- **SF first.** `x_o < RC` is SF, with `x_o = rC + c`; the last `N` values are the one-body tail, its `N_+` D1 rows first, then Q1.
-- **`G0 = 0` is SF.** The tail load writes `G`, the SF load fires on `G0 = 0`.
-- **Signs.** `InnerPrepare` loads `sgn = [w_b < 0]` and `d_sgn = sgn XOR sgn[alt]`, and `InnerSigns` applies `Z(sgn)` and `CZ(less_than_b, d_sgn)`, so every branch carries the sign of the surviving `b`.
-- **Jordan-Wigner.** `gamma_{j,0} = Z_0 .. Z_{j-1} X_j` and `gamma_{j,1} = Z_0 .. Z_{j-1} Y_j` on one spin register, qubit 0 the most significant, as in Eq. (B12) of [[1]](#references). So `a_j = Z_0 .. Z_{j-1} (X_j + iY_j)/2`: `|1>` is occupied, and on one mode `n = (1 - Z)/2`.
-- **Givens ladder.** `GivensRotationLadder` applies `U(u)` with `U(u)^dag gamma_0 U(u) = sum_j u_j gamma_j`, so `Maj` only ever acts on qubit 0 of `psi_dn`: `-Z` for SF, `a_u` for D1, `a_u^dag` for Q1. An angle `theta` is stored as the integer `round(theta / (2 pi) * 2^(b_rot - 1))`.
-- **`Maj`.** On qubit 0 the string is empty, so `gamma_0 = X`, `gamma_1 = Y`, and the SF pair is `i gamma_0 gamma_1 = -Z` (with `n_u = (1 + i gamma_0 gamma_1)/2`), D1's `a_u` is `(X + iY)/2`. Fig. 4 of [[1]](#references) applies `+Z` on SF, which is `i gamma_1 gamma_0`, the order of its Eq. (B1); that would flip every `w_b` against the identity term `w_B`. `Maj` applies `-Z = diag(-1, 1)` as the same `CCZ`, with the target as an open control and `b_neq_B` as the Z target, so the Toffoli count is unchanged. The Jordan-Wigner ordering does not enter: in `gamma_0 gamma_1` of one mode the string squares to the identity.
-- **Erases.** By default the loaded tables are erased by X-measurement, a cost-only bloq with the phase-fixup count of [[1]](#references). `exact_erase=True` undoes each read by its exact inverse instead, a second read, which keeps every bloq unitary so it can be contracted. It warns, as that is not the circuit whose cost is reported.
-
-## The figures
-
-`docs/*.tex` are standalone quantikz sources sharing `docs/circuit-macros.tex`. To redraw one:
-
-```bash
-cd docs
-latexmk -pdf -outdir=/tmp/ltxbuild dfthc-walk.tex
-pdftocairo -svg /tmp/ltxbuild/dfthc-walk.pdf dfthc-walk.svg
-```
 
 ## References
 

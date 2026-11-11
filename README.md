@@ -2,10 +2,7 @@
 
 This is an implementation of the DFTHC block encoding of a SOSSA Hamiltonian, and its corresponding qubitized walk operator, referenced in "Fast quantum simulation of electronic structure by spectral amplification", Phys. Rev. X **15**, 041016 (2025) [[1]](#references).
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/dfthc-overview-dark.png">
-  <img alt="The walk operator, the energy error against the bits, and the Toffolis per box" src="docs/dfthc-overview-light.png">
-</picture>
+![The walk operator, the energy error against the bits, and the Toffolis per box](docs/dfthc-overview.png)
 
 The walk operator $W$ that `dfthcbe` builds and costs, one bloq per box: steps 1-27 are the block encoding `DFTHCBlockEncoding`, and step 28 is the reflection that makes it the walk `DFTHCWalk`. Below left, the error of the ground-state energy of the Hamiltonian the walk encodes, against FCI, as the bits of the angles, the alias tables and the equal superpositions grow; below right, the Toffolis per walk step of each bundled example, split into the boxes of the circuit, with its active space (electrons, orbitals). [The walk operator: bloq by bloq](#the-walk-operator-bloq-by-bloq) describes each box.
 
@@ -212,7 +209,7 @@ latexmk -pdf -outdir=/tmp/ltxbuild dfthc-walk.tex
 pdftocairo -svg /tmp/ltxbuild/dfthc-walk.pdf dfthc-walk.svg
 ```
 
-The opening figure, in its light and dark versions, is redrawn by `python docs/dfthc-overview.py`, which also needs pyscf.
+The opening figure is redrawn by `python docs/dfthc-overview.py`, which also needs pyscf.
 
 ## Costs
 

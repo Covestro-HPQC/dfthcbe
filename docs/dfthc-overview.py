@@ -1,4 +1,4 @@
-"""Draws the README's opening figure, dfthc-overview-light.png and -dark.png; needs pyscf."""
+"""Draws the README's opening figure, dfthc-overview.png; needs pyscf."""
 import json
 import pathlib
 import subprocess
@@ -26,12 +26,8 @@ SWEEP = ('h2_sto3g_R2_B2_C1', 'naphthalene')  # small enough for FCI
 BITS = range(4, 17)
 BOXES = (('PREP', r'$\mathrm{PREP}$'), ('PREPB', r'$\mathrm{PREP}_b$'),
          ('SEL', r'$\mathrm{SEL}_b$'), ('REF', r'$\mathrm{REF}$'))
-THEMES = {  # GitHub's background and text; box hues checked for colour blindness and contrast
-    'light': dict(bg='#ffffff', ink='#1f2328', ink2='#59636e', line2='#818b98', grid='#d1d9e0',
-                  hues=('#1baf7a', '#eda100', '#e87ba4', '#008300'), tint=28),
-    'dark': dict(bg='#0d1117', ink='#e6edf3', ink2='#9198a1', line2='#9198a1', grid='#3d444d',
-                 hues=('#199e70', '#c98500', '#d55181', '#008300'), tint=45),
-}
+HUES = ('#1baf7a', '#eda100', '#e87ba4', '#2a78d6')  # checked for colour blindness and contrast
+INK, INK2, LINE2, GRID = '#1f2328', '#59636e', '#818b98', '#d1d9e0'
 
 
 def factors(name):
@@ -70,41 +66,40 @@ def box_toffolis(name):
 
 # --- the circuit, docs/dfthc-walk.tex with each box tinted ---
 
-def circuit_png(theme, build):
-    t = THEMES[theme]
+def circuit_png(build):
     macros = (DOCS / 'circuit-macros.tex').read_text()
-    macros = macros.replace('rounded corners=6pt}', 'rounded corners=6pt,fill=bg}')
-    macros = macros.replace(r'\scriptsize #1', r'\scriptsize\color{ink2}#1')
-    (build / 'circuit-macros.tex').write_text(macros)
+    (build / 'circuit-macros.tex').write_text(macros.replace(r'\scriptsize #1',
+                                                             r'\scriptsize\color{ink2}#1'))
     tex = (DOCS / 'dfthc-walk.tex').read_text()
     for old, new in [('fill=black!8', 'fill=PREP'), ('fill=black!9', 'fill=SEL'),
                      ('fill=black!3}]{\\mathrm{PREP}', 'fill=PREPB}]{\\mathrm{PREP}'),
-                     ('fill=black!3}]{\\mathrm{SGN}', 'fill=bg}]{\\mathrm{SGN}'),
+                     ('fill=black!3}]{\\mathrm{SGN}', 'fill=white}]{\\mathrm{SGN}'),
                      ('fill=red!10', 'fill=REF')]:
         tex = tex.replace(old, new)
     assert 'black!' not in tex and 'red!' not in tex
-    colors = [rf'\definecolor{{{k}}}{{HTML}}{{{t[k][1:]}}}' for k in ('bg', 'ink', 'ink2')]
-    for (k, _), hue in zip(BOXES, t['hues']):
-        colors += [rf'\definecolor{{{k}hue}}{{HTML}}{{{hue[1:]}}}',
-                   rf'\colorlet{{{k}}}{{{k}hue!{t["tint"]}!bg}}']
-    tex = tex.replace(r'\pagecolor{white}', '\n'.join(colors + [r'\color{ink}']))
-    (build / f'walk-{theme}.tex').write_text(tex)
-    subprocess.run(['latexmk', '-pdf', '-interaction=nonstopmode', f'walk-{theme}.tex'],
-                   cwd=build, check=True, capture_output=True)
-    subprocess.run(['pdftocairo', '-png', '-r', '400', '-transp', '-singlefile',
-                    f'walk-{theme}.pdf', f'walk-{theme}'], cwd=build, check=True)
-    return build / f'walk-{theme}.png'
+    colors = [rf'\definecolor{{ink}}{{HTML}}{{{INK[1:]}}}',
+              rf'\definecolor{{ink2}}{{HTML}}{{{INK2[1:]}}}']
+    for (key, _), hue in zip(BOXES, HUES):
+        colors += [rf'\definecolor{{{key}hue}}{{HTML}}{{{hue[1:]}}}',
+                   rf'\colorlet{{{key}}}{{{key}hue!28!white}}']
+    tex = tex.replace(r'\pagecolor{white}', '\n'.join([r'\pagecolor{white}'] + colors
+                                                      + [r'\color{ink}']))
+    (build / 'walk.tex').write_text(tex)
+    subprocess.run(['latexmk', '-pdf', '-interaction=nonstopmode', 'walk.tex'], cwd=build,
+                   check=True, capture_output=True)
+    subprocess.run(['pdftocairo', '-png', '-r', '400', '-singlefile', 'walk.pdf', 'walk'],
+                   cwd=build, check=True)
+    return build / 'walk.png'
 
 
-# --- the figure ---
+# --- the figure, on white so it reads in both of GitHub's themes ---
 
-def draw(theme, errors, boxes, circuit):
-    t = THEMES[theme]
+def draw(errors, boxes, circuit):
     plt.rcParams.update({
         'font.family': 'serif', 'font.serif': ['cmr10'], 'mathtext.fontset': 'cm',
-        'axes.formatter.use_mathtext': True, 'font.size': 11, 'text.color': t['ink'],
-        'axes.facecolor': 'none', 'figure.facecolor': 'none', 'axes.edgecolor': t['ink2'],
-        'axes.labelcolor': t['ink2'], 'xtick.color': t['ink2'], 'ytick.color': t['ink2'],
+        'axes.formatter.use_mathtext': True, 'font.size': 11, 'text.color': INK,
+        'axes.edgecolor': INK2, 'axes.labelcolor': INK, 'xtick.color': INK2,
+        'ytick.color': INK2, 'xtick.labelcolor': INK, 'ytick.labelcolor': INK,
         'axes.spines.top': False, 'axes.spines.right': False,
     })
     fig = plt.figure(figsize=(11, 6.1), layout='constrained')
@@ -115,39 +110,40 @@ def draw(theme, errors, boxes, circuit):
     left, right = bottom.subplots(1, 2, width_ratios=(1, 1.15))
 
     # the energy error against the bits; the molecules in ink, so that colour means a box
-    for name, color, marker in zip(SWEEP, (t['ink'], t['line2']), 'os'):
+    for name, color, marker in zip(SWEEP, (INK, LINE2), 'os'):
         err = np.abs(errors[name])
-        left.plot(BITS, err, '-', marker=marker, color=color, lw=2, ms=7, mec=t['bg'], mew=1.5)
+        left.plot(BITS, err, '-', marker=marker, color=color, lw=2, ms=7, mec='white', mew=1.5)
         label, (n_el, n_orb) = SYSTEMS[name]
         left.text(BITS[0] - 0.4, err[0], f'{label} ({n_el}, {n_orb})', ha='right', va='center',
                   fontsize=10)
-    left.axhline(1.6e-3, color=t['ink2'], lw=1, ls='--')
-    left.text(BITS[-1], 1.6e-3 * 1.4, 'chemical accuracy', color=t['ink2'], fontsize=10, ha='right')
+    left.axhline(1.6e-3, color=INK2, lw=1, ls='--')
+    left.text(BITS[-1], 1.6e-3 * 1.4, 'chemical accuracy', color=INK2, fontsize=10, ha='right')
     left.set(yscale='log', xlim=(-2.2, 16.5), xticks=range(4, 17, 2),
              xlabel=r'bits of precision, $b_{\mathrm{rot}} = b_{k_1} = b_{k_2} = s_u$',
              ylabel=r'$|E_0 - E_{\mathrm{FCI}}|$ (Ha)')
-    left.grid(color=t['grid'], lw=0.8)
+    left.grid(color=GRID, lw=0.8)
 
     # the Toffolis per walk step, split into the boxes of the circuit
     y, start = np.arange(len(SYSTEMS)), np.zeros(len(SYSTEMS))
-    for (key, label), hue in zip(BOXES, t['hues']):
+    for (key, label), hue in zip(BOXES, HUES):
         width = np.array([boxes[name][key] for name in SYSTEMS])
-        right.barh(y, width, left=start, height=0.62, color=hue, edgecolor=t['bg'], lw=1.5,
+        right.barh(y, width, left=start, height=0.62, color=hue, edgecolor='white', lw=1.5,
                    label=label)
         start += width
     for yi, total in zip(y, start):
         right.text(total + 80, yi, f'{total:.0f}', va='center', fontsize=10)
     right.set_yticks(y, [f'{label} ({n_el}, {n_orb})' for label, (n_el, n_orb) in SYSTEMS.values()])
-    right.tick_params(axis='y', length=0, labelcolor=t['ink'])
+    right.tick_params(axis='y', length=0)
     right.spines['left'].set_visible(False)
     right.invert_yaxis()
     right.set(xlim=(0, 7300), xlabel=r'Toffolis per walk step, '
               r'$b_{\mathrm{rot}} = b_{k_1} = b_{k_2} = 15$, $s_u = 7$')
-    right.grid(axis='x', color=t['grid'], lw=0.8)
+    right.grid(axis='x', color=GRID, lw=0.8)
     right.set_axisbelow(True)
-    right.legend(frameon=False, loc='upper right', fontsize=10, labelcolor=t['ink'])
+    right.legend(frameon=False, loc='upper right', fontsize=10)
 
-    fig.savefig(DOCS / f'dfthc-overview-{theme}.png', dpi=170, transparent=True)
+    fig.savefig(DOCS / 'dfthc-overview.png', dpi=170, facecolor='white', bbox_inches='tight',
+                pad_inches=0.25)
     plt.close(fig)
 
 
@@ -155,5 +151,4 @@ if __name__ == '__main__':
     errors = {name: [energy_error(name, bits) for bits in BITS] for name in SWEEP}
     boxes = {name: box_toffolis(name) for name in SYSTEMS}
     with tempfile.TemporaryDirectory() as build:
-        for theme in THEMES:
-            draw(theme, errors, boxes, circuit_png(theme, pathlib.Path(build)))
+        draw(errors, boxes, circuit_png(pathlib.Path(build)))
